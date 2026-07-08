@@ -1,4 +1,6 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 app = FastAPI(
     title="JulesTube",
@@ -6,11 +8,12 @@ app = FastAPI(
     version="Prelude"
 )
 
+templates = Jinja2Templates(directory="templates")
 
-@app.get("/")
-def home():
-    return {
-        "app": "JulesTube",
-        "version": "Prelude",
-        "message": "Welcome, Jules! Raphael: prepare for music!🎵"
-    }
+
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="index.html"
+    )
