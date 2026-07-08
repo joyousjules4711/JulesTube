@@ -2,23 +2,37 @@
 JulesTube is a lightweight web-based remote control for YouTube on Linux.  Search for videos from your phone, add them to the queue, and play them instantly on your Linux PC using mpv and YouTube Premium. No Chromecast required.  Designed as a fun weekend project that grew into a personal music hub.
 
 ✨ Features (planned)
+
 🔍 Search YouTube from any device in your local network
+
 🎵 Play videos on a Linux PC with mpv
+
 📃 Shared queue
+
 ⏯️ Play / Pause / Skip
+
 🔊 Volume control
+
 ❤️ Favorites
+
 🌙 Sleep timer
+
 📱 Installable as a Progressive Web App (PWA)
+
 👥 Multi-user party mode
+
 🎙️ Optional Alexa integration
+
 🛠️ Tech Stack
+
 Python
 FastAPI
 mpv
 yt-dlp
 HTML / CSS / JavaScript
 SQLite
+
+
 🎼 Roadmap
 Version	Codename
 0.1	Prelude
