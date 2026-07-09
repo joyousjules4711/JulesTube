@@ -1,105 +1,164 @@
 <!DOCTYPE html>
 <html lang="de">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JulesTube</title>
 
     <style>
-
-        body{
-            background:#111;
-            color:white;
-            font-family:Arial, Helvetica, sans-serif;
-
-            display:flex;
-            justify-content:center;
-            align-items:center;
-
-            height:100vh;
-            margin:0;
+        body {
+            background: #10261E;
+            color: #F4F4F2;
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
         }
 
-        .container{
-            text-align:center;
+        .container {
+            width: 760px;
+            text-align: center;
         }
 
-        h1{
-            font-size:64px;
-            margin-bottom:10px;
+        h1 {
+            font-size: 64px;
+            margin-bottom: 4px;
         }
 
-        p{
-            color:#bbbbbb;
-            margin-bottom:40px;
+        .premium {
+            color: #C9A227;
+            letter-spacing: 4px;
+            font-size: 13px;
+            margin-bottom: 20px;
         }
 
-        input{
-
-            width:450px;
-
-            padding:16px;
-
-            font-size:18px;
-
-            border-radius:10px;
-
-            border:none;
+        p {
+            color: #d8d8d4;
+            margin-bottom: 28px;
         }
 
-        button{
-
-            margin-top:20px;
-
-            padding:15px 35px;
-
-            border:none;
-
-            border-radius:10px;
-
-            background:#ff0033;
-
-            color:white;
-
-            font-size:18px;
-
-            cursor:pointer;
+        input {
+            width: 520px;
+            padding: 16px;
+            font-size: 18px;
+            border-radius: 12px;
+            border: none;
         }
 
-        button:hover{
-
-            background:#ff3366;
-
+        button {
+            margin-top: 18px;
+            padding: 14px 34px;
+            border: none;
+            border-radius: 12px;
+            background: #4FA36C;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
         }
 
+        button:hover {
+            background: #62bd81;
+        }
+
+        .now-playing {
+            margin: 30px 0;
+            padding: 22px;
+            background: #1D3A2E;
+            border-radius: 18px;
+        }
+
+        .now-playing h2 {
+            margin: 10px 0 20px;
+        }
+
+        .controls a {
+            color: #C9A227;
+            text-decoration: none;
+            margin: 0 12px;
+            font-size: 18px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 36px;
+            text-align: left;
+        }
+
+        li {
+            background: #1D3A2E;
+            margin: 10px 0;
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        li:hover {
+            background: #274b3c;
+        }
+
+        li a {
+            color: #F4F4F2;
+            text-decoration: none;
+            display: block;
+        }
+
+        h2 {
+            margin-top: 44px;
+        }
     </style>
-
 </head>
 
 <body>
+    <div class="container">
+        <h1>JulesTube</h1>
+        <div class="premium">PREMIUM</div>
 
-<div class="container">
+        <p>Your couch. Your music. Your rules.</p>
 
-<h1>🎵 JulesTube</h1>
+        {% if current_video %}
+            <div class="now-playing">
+                <p>🎬 Now Playing</p>
+                <h2>{{ current_video.title }}</h2>
 
-<p>Your couch. Your music. Your rules.</p>
+                <div class="controls">
+                    <a href="/pause">⏯ Pause / Resume</a>
+                    <a href="/stop">⏹ Stop</a>
+                </div>
+            </div>
+        {% endif %}
 
-<input
-type="text"
-placeholder="Search YouTube..."
->
+        <form action="/search" method="get">
+            <input
+                type="text"
+                name="q"
+                placeholder="What are we listening to today?"
+                value="{{ query if query else '' }}"
+            >
 
-<br>
+            <br>
 
-<button>
+            <button type="submit">Search</button>
+        </form>
 
-Search
+        {% if query %}
+            <p>🔍 Du hast gesucht nach: <strong>{{ query }}</strong></p>
+        {% endif %}
 
-</button>
+        {% if videos %}
+            <h2>Ergebnisse</h2>
 
-</div>
-
+            <ul>
+                {% for video in videos %}
+                    <li>
+                        <a href="/play/{{ video.id }}?title={{ video.title | urlencode }}">
+                            ▶ {{ video.title }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
 </body>
-
 </html>

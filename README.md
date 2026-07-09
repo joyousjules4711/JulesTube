@@ -53,3 +53,37 @@ No subscriptions.
 No unnecessary complexity.
 
 Just music.
+
+## 🚀 Development
+
+### Virtuelle Umgebung aktivieren
+
+```bash
+source .venv/bin/activate
+```
+
+### Server starten
+
+```bash
+uvicorn app:app --reload
+```
+
+### Server beenden
+
+```bash
+fuser -k 8000/tcp
+```
+
+### Git Status
+
+```bash
+git status
+```
+
+### Commit
+
+```bash
+git add .
+git commit -m "..."
+git push
+```
