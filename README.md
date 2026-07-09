@@ -1,89 +1,153 @@
-# JulesTube - Your couch. Your music. Your rules.
+# 🌲 JulesTube Premium
 
-JulesTube is a lightweight web-based remote control for YouTube on Linux.  Search for videos from your phone, add them to the queue, and play them instantly on your Linux PC using mpv and YouTube Premium. No Chromecast required.  Designed as a fun weekend project that grew into a personal music hub.
+> **Your couch. Your music. Your rules.**
 
-✨ Features (planned)
+JulesTube Premium is a self-hosted living room jukebox built with **Python**, **FastAPI**, **mpv** and **YouTube**.
 
-🔍 Search YouTube from any device in your local network
-
-🎵 Play videos on a Linux PC with mpv
-
-📃 Shared queue
-
-⏯️ Play / Pause / Skip
-
-🔊 Volume control
-
-❤️ Favorites
-
-🌙 Sleep timer
-
-📱 Installable as a Progressive Web App (PWA)
-
-👥 Multi-user party mode
-
-🎙️ Optional Alexa integration
-
-🛠️ Tech Stack
-
-Python
-FastAPI
-mpv
-yt-dlp
-HTML / CSS / JavaScript
-SQLite
-
-
-🎼 Roadmap
-Version	Codename
-0.1	Prelude
-0.2	Overture
-0.3	Crescendo
-0.4	Harmony
-0.5	Nocturne
-1.0	Encore
-Philosophy
-
-JulesTube isn't trying to replace YouTube.
-
-It's about creating a simple, elegant way to control playback on a Linux PC from your phone while keeping everything inside your own home network.
-
-No cloud.
 No subscriptions.
-No unnecessary complexity.
+No ads.
+No algorithm deciding what you should hear next.
 
-Just music.
+Just great music, shared with friends.
 
-## 🚀 Development
+---
 
-### Virtuelle Umgebung aktivieren
+## ✨ Vision
 
-```bash
-source .venv/bin/activate
+Imagine this:
+
+You and your friends are sitting on the couch.
+
+Everyone grabs their phone.
+
+No Bluetooth pairing.
+No cables.
+No remote control.
+
+Simply open JulesTube, choose a song from your own YouTube playlists and add it to the shared queue.
+
+The TV takes care of the rest.
+
+---
+
+## 🚀 Planned Features
+
+- 🔍 Search YouTube
+- 🎵 Beautiful "Now Playing" screen
+- 📺 Fullscreen playback with mpv
+- 📱 Smartphone remote
+- 👥 Multi-user party mode
+- ➕ Shared queue
+- 🎶 Automatic artist radio
+- ❤️ Personal YouTube playlists
+- 🔐 Google account login
+- 🌲 Emerald Lounge interface
+
+---
+
+## 🛋️ Living Room Mode
+
+JulesTube isn't designed for one person.
+
+It's designed for evenings like this:
+
+```text
+Now Playing
+
+🎵 Queen
+Bohemian Rhapsody
+
+────────────────────
+
+Coming Up
+
+👤 Julia
+Me First And The Gimme Gimmes
+
+👤 Raphael
+SSIO
+
+👤 Martina
+Adriano Celentano
+
 ```
 
-### Server starten
+Everyone contributes.
 
-```bash
-uvicorn app:app --reload
-```
+Nobody fights over the remote.
 
-### Server beenden
+---
 
-```bash
-fuser -k 8000/tcp
-```
+## 💚 Emerald Lounge
 
-### Git Status
+The interface follows one simple philosophy:
 
-```bash
-git status
-```
+> Elegant.
+> Calm.
+> Invisible.
 
-### Commit
+Dark emerald colors.
 
-```bash
-git add .
-git commit -m "..."
-git push
-```
+Large typography.
+
+No clutter.
+
+Music first.
+
+---
+
+## 🛠️ Tech Stack
+
+- Python 3.12
+- FastAPI
+- Jinja2
+- mpv
+- yt-dlp
+
+---
+
+## 🌱 Roadmap
+
+### Emerald 🌲
+- [ ] Stable player
+- [ ] Queue
+- [ ] Now Playing
+- [ ] Smartphone UI
+
+### Harmony 🎼
+- [ ] Multi-user support
+- [ ] Google Login
+- [ ] Personal playlists
+- [ ] Artist Radio
+
+### Symphony 🎻
+- [ ] Party Mode
+- [ ] Lyrics
+- [ ] Themes
+- [ ] Plugins
+
+---
+
+## 📸 Screenshots
+
+Coming soon...
+
+---
+
+## ❤️ Why?
+
+Because playing music together should be simple.
+
+JulesTube is built for friends, family and long evenings on the couch.
+
+One TV.
+
+Many phones.
+
+Great music.
+
+---
+
+> **JulesTube Premium**
+>
+> *Your couch. Your music. Your rules.*
