@@ -1,16 +1,105 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JulesTube</title>
+
+    <style>
+
+        body{
+            background:#111;
+            color:white;
+            font-family:Arial, Helvetica, sans-serif;
+
+            display:flex;
+            justify-content:center;
+            align-items:center;
+
+            height:100vh;
+            margin:0;
+        }
+
+        .container{
+            text-align:center;
+        }
+
+        h1{
+            font-size:64px;
+            margin-bottom:10px;
+        }
+
+        p{
+            color:#bbbbbb;
+            margin-bottom:40px;
+        }
+
+        input{
+
+            width:450px;
+
+            padding:16px;
+
+            font-size:18px;
+
+            border-radius:10px;
+
+            border:none;
+        }
+
+        button{
+
+            margin-top:20px;
+
+            padding:15px 35px;
+
+            border:none;
+
+            border-radius:10px;
+
+            background:#ff0033;
+
+            color:white;
+
+            font-size:18px;
+
+            cursor:pointer;
+        }
+
+        button:hover{
+
+            background:#ff3366;
+
+        }
+
+    </style>
+
 </head>
 
 <body>
 
-    <h1>🎵 JulesTube</h1>
+<div class="container">
 
-    <p>Your couch. Your music. Your rules.</p>
+<h1>🎵 JulesTube</h1>
+
+<p>Your couch. Your music. Your rules.</p>
+
+<input
+type="text"
+placeholder="Search YouTube..."
+>
+
+<br>
+
+<button>
+
+Search
+
+</button>
+
+</div>
 
 </body>
+
 </html>
