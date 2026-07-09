@@ -1,9 +1,8 @@
 # Changelog
 
-All notable changes to JulesTube will be documented in this file.
+## Emerald
 
----
-
-## 🎼 Prelude
-
-Project initialized.
+- Initial FastAPI prototype
+- MPV integration
+- YouTube search
+- Queue prototype
