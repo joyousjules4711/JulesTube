@@ -148,6 +148,5 @@ Great music.
 
 ---
 
-> **JulesTube Premium**
->
-> *Your couch. Your music. Your rules.*
+> Turn strangers into guests.
+> Turn guests into DJs.
