@@ -1,3 +1,11 @@
+╔══════════════════════════════════════════════╗
+║                                              ║
+║              JulesTube Premium               ║
+║                                              ║
+║      Your couch. Your music. Your rules.     ║
+║                                              ║
+╚══════════════════════════════════════════════╝
+
 # 🌲 JulesTube Premium
 
 > **Your couch. Your music. Your rules.**
