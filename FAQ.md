@@ -84,4 +84,8 @@ Absolutely.
 
 Some even come with personalities.
 
-🐕
+---
+
+## Is it stable?
+
+Define "stable".
