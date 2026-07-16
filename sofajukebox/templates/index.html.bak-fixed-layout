@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JulesTube Premium</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar" aria-label="Kopfbereich">
+      <button class="hamburger" type="button" aria-label="Menü öffnen">
+        <span></span><span></span><span></span>
+      </button>
+      <button class="signin" type="button" title="Platzhalter für spätere Nutzerfunktion">SIGN IN</button>
+    </header>
+
+    <section class="hero" aria-label="JulesTube Premium Startbereich">
+      <div class="logo-mark" aria-hidden="true">
+        <div class="play-triangle"></div>
+      </div>
+
+      <div class="brand-copy">
+        <p class="stage">Etappe 2 · lokale WLAN-Jukebox</p>
+        <h1><span>JulesTube</span> <em>premium</em></h1>
+      </div>
+    </section>
+
+    <section class="search-card" aria-label="YouTube Suche">
+      <form id="search-form" class="search-pill">
+        <input id="search-input" type="search" placeholder="Song, Video oder Kanal suchen" autocomplete="off">
+        <button class="search-button" aria-label="Suchen" title="Suchen">➤</button>
+      </form>
+      <p class="tagline">Your couch. Your music. Your rules.</p>
+      <p id="message" class="message" role="status"></p>
+    </section>
+
+    <section class="player-grid" aria-label="Player und Warteschlange">
+      <article class="glass-card now-card">
+        <div class="section-title-row">
+          <div>
+            <p class="mini-label">Jetzt läuft</p>
+            <h2 id="now-title">Noch nichts gestartet</h2>
+          </div>
+          <span id="play-state" class="status-chip">bereit</span>
+        </div>
+
+        <div class="track-line">
+          <div id="now-thumb" class="tiny-thumb">♪</div>
+          <div>
+            <p id="now-channel">Player wartet auf den ersten Titel.</p>
+            <p id="now-meta" class="soft-text"></p>
+          </div>
+        </div>
+
+        <div class="controls">
+          <button id="pause-btn" class="round-action" type="button">⏯</button>
+          <button id="next-btn" class="round-action" type="button">⏭</button>
+          <label class="volume-label">
+            <span>🔊</span>
+            <input id="volume" type="range" min="0" max="100" value="70">
+          </label>
+        </div>
+      </article>
+
+      <article class="glass-card next-card">
+        <p class="mini-label">Als Nächstes</p>
+        <div id="next-up" class="next-up empty-state">Noch kein nächster Titel.</div>
+      </article>
+    </section>
+
+    <section class="content-grid">
+      <article class="glass-card results-card">
+        <div class="section-title-row">
+          <div>
+            <p class="mini-label">Suche</p>
+            <h2>Treffer</h2>
+          </div>
+        </div>
+        <div id="results" class="results">
+          <p class="empty-state">Such dir den ersten Ohrwurm aus.</p>
+        </div>
+      </article>
+
+      <article class="glass-card queue-card">
+        <div class="section-title-row">
+          <div>
+            <p class="mini-label">Playlist</p>
+            <h2>Queue</h2>
+          </div>
+          <button id="clear-queue-btn" class="ghost-button" type="button">Leeren</button>
+        </div>
+        <ol id="queue" class="queue"></ol>
+        <p id="queue-empty" class="empty-state">Die Queue ist leer. Der Dancefloor gähnt noch.</p>
+      </article>
+    </section>
+  
+<section class="history-panel" aria-labelledby="history-title">
+  <div class="section-heading">
+    <div>
+      <p class="mini-label">History</p>
+      <h2 id="history-title">Zuletzt gehört</h2>
+    </div>
+    <button id="refresh-history-btn" class="ghost-button" type="button">Aktualisieren</button>
+  </div>
+
+  <p id="history-empty" class="empty-note">Noch kein Hörverlauf vorhanden.</p>
+  <ol id="history-list" class="history-list"></ol>
+</section>
+
+</main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

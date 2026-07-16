@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JulesTube Premium</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="hamburger" type="button" aria-label="Menü">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <a id="youtube-signin" class="signin" href="/auth/youtube/login">SIGN IN</a>
+    </header>
+
+    <section class="hero">
+      <div class="hero-brand">
+        <div class="logo-mark" aria-hidden="true">
+          <div class="play-triangle"></div>
+        </div>
+
+        <h1>
+          <span>JulesTube</span>
+          <em>premium</em>
+        </h1>
+      </div>
+
+      <div class="hero-search">
+        <form id="search-form" class="search-pill">
+          <input id="search-input" type="search" placeholder="Song, Video oder Kanal suchen" autocomplete="off">
+
+          <button
+            id="voice-search-btn"
+            class="voice-search-btn"
+            type="button"
+            aria-label="Spracheingabe starten"
+            title="Spracheingabe starten"
+          >🎤</button>
+
+          <button type="submit" aria-label="Suchen">➤</button>
+        </form>
+
+        <div id="search-suggestions" class="search-suggestions" hidden></div>
+        <p id="message" class="message" aria-live="polite"></p>
+      </div>
+
+      <section id="join-card" class="join-card">
+        <div class="join-text">
+          <p class="mini-label">Beitreten</p>
+          <h2>Mit dem Smartphone verbinden</h2>
+          <p class="join-description">QR-Code scannen und JulesTube im selben WLAN öffnen.</p>
+          <a id="join-url" class="join-url" href="#" target="_blank" rel="noreferrer">Lade Adresse …</a>
+
+          <div class="join-actions">
+            <button id="copy-join-url" class="ghost-button" type="button">Link kopieren</button>
+            <button id="refresh-qr" class="ghost-button" type="button">QR neu laden</button>
+          </div>
+        </div>
+
+        <div class="qr-frame">
+          <img id="join-qr" alt="QR-Code zum Beitreten">
+        </div>
+      </section>
+
+      <section id="user-card" class="user-card">
+        <div>
+          <p class="mini-label">DJ Name</p>
+          <h2>Wer legt gerade auf?</h2>
+          <p class="user-description">Dieser Name erscheint bei Songs, die du zur Queue hinzufügst.</p>
+        </div>
+
+        <div class="username-controls">
+          <label class="username-field">
+            <span>Dein Name</span>
+            <input id="username-input" type="text" maxlength="32" placeholder="z. B. Julia">
+          </label>
+          <button id="save-username-btn" class="ghost-button" type="button">Speichern</button>
+        </div>
+      </section>
+
+      <section id="dj-badge" class="dj-badge" hidden>
+        <p><span class="mini-label">DJ</span> <strong id="dj-name-label"></strong></p>
+        <button id="change-username-btn" class="ghost-button" type="button">ändern</button>
+      </section>
+
+
+      <section id="playlist-card" class="playlist-card">
+        <div class="section-heading">
+          <div>
+            <p class="mini-label">YouTube</p>
+            <h2>Playlist laden</h2>
+          </div>
+        </div>
+
+        <div class="playlist-controls">
+          <input id="playlist-url-input" type="url" placeholder="YouTube-Playlist-Link einfügen">
+          <button id="playlist-paste-btn" class="ghost-button" type="button">Aus Zwischenablage</button>
+          <button id="playlist-load-btn" class="ghost-button" type="button">Laden</button>
+        </div>
+
+        <p id="playlist-info" class="empty-note">Playlist-Link einfügen oder aus der Zwischenablage übernehmen.</p>
+
+        <div id="playlist-actions" class="playlist-actions" hidden>
+          <button id="playlist-queue-all-btn" class="ghost-button" type="button">Alle zur Queue</button>
+          <button id="playlist-shuffle-queue-btn" class="ghost-button" type="button">Mischen + Queue</button>
+        </div>
+
+        <div id="playlist-results" class="playlist-list"></div>
+      </section>
+
+      <p class="tagline">Your couch. Your music. Your rules.</p>
+    </section>
+
+    <main class="layout-grid">
+      <section class="panel results-panel">
+        <p class="mini-label">Suche</p>
+        <h2>Treffer</h2>
+        <div id="results" class="results">
+          <p class="empty-note">Such dir den ersten Ohrwurm aus.</p>
+        </div>
+      </section>
+
+      <section class="panel now-panel">
+        <p class="mini-label">Jetzt läuft</p>
+        <h2 id="now-title">Noch nichts gestartet</h2>
+
+        <div id="now-thumb" class="now-thumb" aria-hidden="true">▶</div>
+        <p id="now-meta" class="now-meta">Player wartet auf den ersten Song.</p>
+
+        <div class="controls">
+          <button id="pause-btn" class="main-play-button" data-mode="empty" type="button" aria-label="Abspielen">▶</button>
+          <button id="next-btn" class="next-button" type="button" aria-label="Nächster Titel">⏭</button>
+        </div>
+
+        <label class="volume-control">
+          <span>🔊</span>
+          <input id="volume" type="range" min="0" max="100" value="70">
+        </label>
+
+        <label class="autoplay-toggle">
+          <input id="autoplay-toggle" type="checkbox">
+          <span>Autoplay bei leerer Queue</span>
+        </label>
+      </section>
+
+      <section class="panel queue-panel">
+        <div class="section-heading">
+          <div>
+            <p class="mini-label">Playlist</p>
+            <h2>Queue</h2>
+          </div>
+          <button id="clear-queue-btn" class="ghost-button" type="button">Leeren</button>
+        </div>
+
+        <p id="queue-empty" class="empty-note">Die Queue ist leer. Der Dancefloor gähnt noch.</p>
+        <ol id="queue" class="queue-list"></ol>
+      </section>
+
+      <section class="panel history-panel">
+        <div class="section-heading">
+          <div>
+            <p class="mini-label">History</p>
+            <h2>Zuletzt gehört</h2>
+          </div>
+          <button id="refresh-history-btn" class="ghost-button" type="button">Aktualisieren</button>
+        </div>
+
+        <p id="history-empty" class="empty-note">Noch kein Hörverlauf vorhanden.</p>
+        <ol id="history-list" class="history-list"></ol>
+      </section>
+    </main>
+
+    <section id="similar-panel" class="panel similar-panel">
+      <div class="section-heading">
+        <div>
+          <p class="mini-label">Discovery</p>
+          <h2>Ähnliche Videos</h2>
+        </div>
+        <button id="refresh-similar-btn" class="ghost-button" type="button">Aktualisieren</button>
+      </div>
+
+      <p id="similar-empty" class="empty-note">Starte ein Video, dann erscheinen hier ähnliche Vorschläge.</p>
+      <div id="similar-list" class="similar-list"></div>
+    </section>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

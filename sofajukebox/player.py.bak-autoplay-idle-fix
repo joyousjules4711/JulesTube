@@ -1,0 +1,137 @@
+from __future__ import annotations
+
+import json
+import os
+import socket
+import subprocess
+import time
+from dataclasses import dataclass
+from typing import Any
+
+
+class MpvError(RuntimeError):
+    """Raised when mpv could not be started or controlled."""
+
+
+@dataclass
+class MpvPlayer:
+    """Small JSON-IPC wrapper around an mpv process.
+
+    The app intentionally talks to mpv through its local Unix socket instead of
+    pretending to press keyboard shortcuts. That keeps playback control reliable
+    and testable.
+    """
+
+    socket_path: str
+    process: subprocess.Popen | None = None
+
+    def start(self) -> None:
+        """Start mpv in idle mode if it is not already running."""
+        if self.process and self.process.poll() is None:
+            return
+
+        self._remove_stale_socket()
+
+        deno_path = os.path.expanduser("~/.deno/bin/deno")
+        ytdl_options = os.environ.get(
+            "JULESTUBE_YTDL_OPTIONS",
+            f"cookies-from-browser=firefox,js-runtimes=deno:{deno_path}",
+        )
+
+        self.process = subprocess.Popen(
+            [
+                "mpv",
+                "--idle=yes",
+                "--force-window=yes",
+                "--no-terminal",
+                "--ytdl=yes",
+                f"--ytdl-raw-options={ytdl_options}",
+                f"--input-ipc-server={self.socket_path}",
+            ],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+        deadline = time.time() + 4
+        while time.time() < deadline:
+            if os.path.exists(self.socket_path):
+                return
+            if self.process.poll() is not None:
+                raise MpvError("mpv wurde unerwartet beendet.")
+            time.sleep(0.05)
+
+        raise MpvError("mpv-IPC-Socket wurde nicht rechtzeitig erstellt.")
+
+    def enqueue(self, url: str) -> dict[str, Any]:
+        """Append a URL to mpv's playlist and start playback if idle."""
+        self.start()
+        return self.command(["loadfile", url, "append-play"])
+
+    def play_now(self, url: str) -> dict[str, Any]:
+        """Replace the playlist and immediately play one URL."""
+        self.start()
+        return self.command(["loadfile", url, "replace"])
+
+    def toggle_pause(self) -> dict[str, Any]:
+        self.start()
+        return self.command(["cycle", "pause"])
+
+    def next(self) -> dict[str, Any]:
+        self.start()
+        return self.command(["playlist-next", "force"])
+
+    def set_volume(self, volume: int) -> dict[str, Any]:
+        self.start()
+        safe_volume = max(0, min(volume, 100))
+        return self.command(["set_property", "volume", safe_volume])
+
+    def status(self) -> dict[str, Any]:
+        """Return a compact player status for the web UI."""
+        if not self.process or self.process.poll() is not None:
+            return {
+                "running": False,
+                "paused": True,
+                "volume": None,
+                "title": None,
+                "playlist_pos": None,
+                "playlist_count": 0,
+            }
+
+        return {
+            "running": True,
+            "paused": self.get_property("pause"),
+            "volume": self.get_property("volume"),
+            "title": self.get_property("media-title"),
+            "playlist_pos": self.get_property("playlist-pos"),
+            "playlist_count": self.get_property("playlist-count"),
+        }
+
+    def get_property(self, name: str) -> Any:
+        reply = self.command(["get_property", name])
+        return reply.get("data")
+
+    def command(self, command: list[Any]) -> dict[str, Any]:
+        """Send one JSON command to mpv and return its JSON reply."""
+        payload = json.dumps({"command": command}).encode("utf-8") + b"\n"
+
+        try:
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+                client.settimeout(3)
+                client.connect(self.socket_path)
+                client.sendall(payload)
+                raw = client.recv(65536)
+        except OSError as exc:
+            raise MpvError(f"Konnte mpv nicht steuern: {exc}") from exc
+
+        if not raw:
+            raise MpvError("mpv hat keine Antwort gesendet.")
+
+        first_line = raw.splitlines()[0]
+        reply = json.loads(first_line.decode("utf-8"))
+        if reply.get("error") not in (None, "success"):
+            raise MpvError(f"mpv-Fehler: {reply['error']}")
+        return reply
+
+    def _remove_stale_socket(self) -> None:
+        if os.path.exists(self.socket_path):
+            os.unlink(self.socket_path)

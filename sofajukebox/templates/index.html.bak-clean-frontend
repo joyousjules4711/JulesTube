@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JulesTube Premium</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <button class="hamburger" type="button" aria-label="Menü">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <a class="signin" href="#" aria-label="Sign in">SIGN IN</a>
+    </header>
+
+    <section class="hero">
+      <div class="brand-row">
+        <div class="logo-mark" aria-hidden="true">
+          <div class="play-triangle"></div>
+        </div>
+
+        <div class="brand-copy">
+          <h1><span>JulesTube</span> <em>premium</em></h1>
+        </div>
+      </div>
+
+      <form id="search-form" class="search-pill">
+        <input id="search-input" type="search" placeholder="Song, Video oder Kanal suchen" autocomplete="off">
+        <button type="submit" aria-label="Suchen">➤</button>
+      </form>
+
+      <p id="message" class="message" aria-live="polite"></p>
+
+      <p class="tagline">Your couch. Your music. Your rules.</p>
+    </section>
+
+    <main id="jules-layout-grid" class="jules-layout-grid">
+      <section class="panel results-panel" aria-labelledby="results-title">
+        <p class="mini-label">Suche</p>
+        <h2 id="results-title">Treffer</h2>
+        <div id="results" class="results">
+          <p class="empty">Such dir den ersten Ohrwurm aus.</p>
+        </div>
+      </section>
+
+      <section class="panel now-panel" aria-labelledby="now-title">
+        <p class="mini-label">Jetzt läuft</p>
+        <h2 id="now-title">Noch nichts gestartet</h2>
+
+        <div id="now-thumb" class="now-thumb" aria-hidden="true">▶</div>
+
+        <p id="now-meta" class="now-meta">Player wartet auf den ersten Song.</p>
+
+        <div class="controls">
+          <button id="pause-btn" type="button" aria-label="Abspielen">▶</button>
+          <button id="next-btn" type="button" aria-label="Nächster Titel">⏭</button>
+        </div>
+
+        <label class="volume-control">
+          <span>🔊</span>
+          <input id="volume" type="range" min="0" max="100" value="70">
+        </label>
+      </section>
+
+      <section class="panel queue-panel" aria-labelledby="queue-title">
+        <div class="section-heading">
+          <div>
+            <p class="mini-label">Playlist</p>
+            <h2 id="queue-title">Queue</h2>
+          </div>
+          <button id="clear-queue-btn" class="ghost-button" type="button">Leeren</button>
+        </div>
+
+        <p id="queue-empty" class="empty-note">Die Queue ist leer. Der Dancefloor gähnt noch.</p>
+        <ol id="queue" class="queue-list"></ol>
+      </section>
+
+      <section class="panel history-panel" aria-labelledby="history-title">
+        <div class="section-heading">
+          <div>
+            <p class="mini-label">History</p>
+            <h2 id="history-title">Zuletzt gehört</h2>
+          </div>
+          <button id="refresh-history-btn" class="ghost-button" type="button">Aktualisieren</button>
+        </div>
+
+        <p id="history-empty" class="empty-note">Noch kein Hörverlauf vorhanden.</p>
+        <ol id="history-list" class="history-list"></ol>
+      </section>
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

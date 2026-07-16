@@ -1,0 +1,38 @@
+{
+  "FAUXMO": {
+    "ip_address": "auto"
+  },
+  "PLUGINS": {
+    "JulesTubeCommandPlugin": {
+      "path": "/home/julia/Projects/Sofa/sofa-jukebox/alexa/julestube_fauxmo_plugin.py",
+      "base_url": "http://127.0.0.1:5050",
+      "DEVICES": [
+        {
+          "name": "Sofa Pause",
+          "port": 12340,
+          "action": "play_pause"
+        },
+        {
+          "name": "Sofa Weiter",
+          "port": 12341,
+          "action": "next"
+        },
+        {
+          "name": "Sofa Laut",
+          "port": 12342,
+          "action": "volume_loud"
+        },
+        {
+          "name": "Sofa Normal",
+          "port": 12343,
+          "action": "volume_normal"
+        },
+        {
+          "name": "Sofa Leise",
+          "port": 12344,
+          "action": "volume_quiet"
+        }
+      ]
+    }
+  }
+}

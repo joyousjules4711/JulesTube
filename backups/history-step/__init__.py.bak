@@ -1,0 +1,16 @@
+from flask import Flask
+
+from .player import MpvPlayer
+from .routes import create_routes
+from .youtube import YouTubeSearch
+
+
+def create_app() -> Flask:
+    """Create and configure the SofaJukebox Flask application."""
+    app = Flask(__name__)
+
+    player = MpvPlayer(socket_path="/tmp/sofajukebox-mpv.sock")
+    youtube = YouTubeSearch(max_results=8)
+
+    create_routes(app, player=player, youtube=youtube)
+    return app

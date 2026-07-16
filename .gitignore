@@ -1,0 +1,18 @@
+client_secret.json
+data/youtube-token.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# JulesTube secrets and local account data
+client_secret.json
+data/youtube-token.json
+data/flask-secret.txt
+data/public-url.txt
+
+# Runtime and local files
+*.log
+*.sock
+.DS_Store

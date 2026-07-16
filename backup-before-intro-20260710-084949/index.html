@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SofaJukebox</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="hero">
+      <p class="eyebrow">JulesTube · Etappe 1</p>
+      <h1>SofaJukebox</h1>
+      <p>Suche am Handy. Spiel auf dem Linux-PC. Kein Cast-Zauber, nur sauberes lokales Werkzeug.</p>
+    </header>
+
+    <section class="panel now-playing">
+      <h2>Aktuell</h2>
+      <p id="now-title">Noch nichts gestartet</p>
+      <p id="now-meta"></p>
+      <div class="controls">
+        <button id="pause-btn">⏯️ Play/Pause</button>
+        <button id="next-btn">⏭️ Weiter</button>
+      </div>
+      <label class="volume-label">
+        🔊 Lautstärke
+        <input id="volume" type="range" min="0" max="100" value="70">
+      </label>
+    </section>
+
+    <section class="panel">
+      <h2>Suche</h2>
+      <form id="search-form" class="search-row">
+        <input id="search-input" type="search" placeholder="Song, Video oder Kanal suchen" autocomplete="off">
+        <button>Suchen</button>
+      </form>
+      <p id="message" class="message"></p>
+      <div id="results" class="results"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Warteschlange</h2>
+      <ol id="queue" class="queue"></ol>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

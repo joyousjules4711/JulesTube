@@ -1,0 +1,102 @@
+from __future__ import annotations
+
+from typing import Any
+
+from flask import Flask, jsonify, render_template, request
+
+from .player import MpvError, MpvPlayer
+from .youtube import YouTubeSearch
+
+
+QUEUE: list[dict[str, Any]] = []
+
+
+def create_routes(app: Flask, player: MpvPlayer, youtube: YouTubeSearch) -> None:
+    @app.get("/")
+    def index():
+        return render_template("index.html")
+
+    @app.get("/api/search")
+    def search():
+        query = request.args.get("q", "")
+        try:
+            return jsonify({"results": youtube.search(query)})
+        except Exception as exc:  # yt-dlp errors are often site/network-specific
+            return jsonify({"error": str(exc)}), 502
+
+    @app.get("/api/status")
+    def status():
+        return jsonify({"player": player.status(), "queue": QUEUE})
+
+    @app.post("/api/queue")
+    def enqueue():
+        body = request.get_json(force=True, silent=True) or {}
+        url = body.get("url")
+        if not url:
+            return jsonify({"error": "url fehlt"}), 400
+
+        item = {
+            "title": body.get("title") or url,
+            "channel": body.get("channel") or "",
+            "url": url,
+            "thumbnail": body.get("thumbnail"),
+        }
+
+        try:
+            player.enqueue(url)
+        except MpvError as exc:
+            return jsonify({"error": str(exc)}), 500
+
+        QUEUE.append(item)
+        return jsonify({"ok": True, "queue": QUEUE, "player": player.status()})
+
+    @app.post("/api/play-now")
+    def play_now():
+        body = request.get_json(force=True, silent=True) or {}
+        url = body.get("url")
+        if not url:
+            return jsonify({"error": "url fehlt"}), 400
+
+        item = {
+            "title": body.get("title") or url,
+            "channel": body.get("channel") or "",
+            "url": url,
+            "thumbnail": body.get("thumbnail"),
+        }
+
+        try:
+            player.play_now(url)
+        except MpvError as exc:
+            return jsonify({"error": str(exc)}), 500
+
+        QUEUE.clear()
+        QUEUE.append(item)
+        return jsonify({"ok": True, "queue": QUEUE, "player": player.status()})
+
+    @app.post("/api/control/pause")
+    def pause():
+        try:
+            player.toggle_pause()
+        except MpvError as exc:
+            return jsonify({"error": str(exc)}), 500
+        return jsonify({"ok": True, "player": player.status()})
+
+    @app.post("/api/control/next")
+    def next_track():
+        try:
+            player.next()
+        except MpvError as exc:
+            return jsonify({"error": str(exc)}), 500
+        return jsonify({"ok": True, "player": player.status()})
+
+    @app.post("/api/control/volume")
+    def volume():
+        body = request.get_json(force=True, silent=True) or {}
+        try:
+            value = int(body.get("volume", 70))
+            player.set_volume(value)
+        except (TypeError, ValueError):
+            return jsonify({"error": "volume muss eine Zahl sein"}), 400
+        except MpvError as exc:
+            return jsonify({"error": str(exc)}), 500
+        return jsonify({"ok": True, "player": player.status()})

@@ -1,0 +1,890 @@
+const form = document.querySelector('#search-form');
+const input = document.querySelector('#search-input');
+const suggestions = document.querySelector('#search-suggestions');
+const results = document.querySelector('#results');
+const message = document.querySelector('#message');
+
+const nowTitle = document.querySelector('#now-title');
+const nowMeta = document.querySelector('#now-meta');
+const nowThumb = document.querySelector('#now-thumb');
+const pauseBtn = document.querySelector('#pause-btn');
+const nextBtn = document.querySelector('#next-btn');
+const volume = document.querySelector('#volume');
+
+const queue = document.querySelector('#queue');
+const queueEmpty = document.querySelector('#queue-empty');
+const clearQueueBtn = document.querySelector('#clear-queue-btn');
+
+const historyList = document.querySelector('#history-list');
+const historyEmpty = document.querySelector('#history-empty');
+const refreshHistoryBtn = document.querySelector('#refresh-history-btn');
+
+const similarList = document.querySelector('#similar-list');
+const similarEmpty = document.querySelector('#similar-empty');
+const refreshSimilarBtn = document.querySelector('#refresh-similar-btn');
+const autoplayToggle = document.querySelector('#autoplay-toggle');
+
+const joinUrl = document.querySelector('#join-url');
+const joinQr = document.querySelector('#join-qr');
+const copyJoinUrlBtn = document.querySelector('#copy-join-url');
+const refreshQrBtn = document.querySelector('#refresh-qr');
+
+const userCard = document.querySelector('#user-card');
+const djBadge = document.querySelector('#dj-badge');
+const usernameInput = document.querySelector('#username-input');
+const saveUsernameBtn = document.querySelector('#save-username-btn');
+const changeUsernameBtn = document.querySelector('#change-username-btn');
+const djNameLabel = document.querySelector('#dj-name-label');
+
+let latestState = null;
+let suggestionTimer = null;
+let suggestionAbort = null;
+let lastSimilarKey = '';
+let similarLoading = false;
+
+let autoplayBusy = false;
+let autoplayLastSourceKey = '';
+let autoplayLastSourceTrack = null;
+let autoplayCooldownUntil = 0;
+
+async function api(path, options = {}) {
+  const response = await fetch(path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Unbekannter Fehler');
+  }
+
+  return data;
+}
+
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function setMessage(text) {
+  message.textContent = text || '';
+}
+
+function formatDateTime(value) {
+  if (!value) return '';
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleString('de-AT', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+function getJulesTubeUsername() {
+  const stored = localStorage.getItem('julestube.username') || '';
+  const typed = usernameInput?.value || '';
+  const name = (stored || typed || '').trim();
+
+  return name || 'Gast';
+}
+
+function withAddedBy(item) {
+  return {
+    ...item,
+    added_by: getJulesTubeUsername(),
+  };
+}
+
+function trackMeta(item) {
+  return [
+    item.channel || '',
+    item.added_by ? `von ${item.added_by}` : '',
+    item.duration || '',
+  ].filter(Boolean).join(' · ');
+}
+
+function thumbnailHtml(item, className) {
+  if (item.thumbnail) {
+    return `<img src="${escapeHtml(item.thumbnail)}" alt="">`;
+  }
+
+  return `<span class="${className}-fallback">♪</span>`;
+}
+
+function renderResults(items) {
+  results.innerHTML = '';
+
+  if (!items || items.length === 0) {
+    results.innerHTML = '<p class="empty-note">Nichts gefunden.</p>';
+    return;
+  }
+
+  for (const item of items) {
+    const card = document.createElement('article');
+    card.className = 'track-card result-card';
+
+    card.innerHTML = `
+      <div class="track-thumb">
+        ${thumbnailHtml(item, 'track-thumb')}
+      </div>
+
+      <div class="track-main">
+        <h3>${escapeHtml(item.title || 'Unbekannter Titel')}</h3>
+        <p>${escapeHtml(trackMeta(item))}</p>
+
+        <div class="track-actions">
+          <button data-action="play" type="button">▶ Jetzt</button>
+          <button data-action="queue" type="button">＋ Queue</button>
+        </div>
+      </div>
+    `;
+
+    card.querySelector('[data-action="play"]').addEventListener('click', () => playNow(item));
+    card.querySelector('[data-action="queue"]').addEventListener('click', () => enqueue(item));
+
+    results.appendChild(card);
+  }
+}
+
+function renderStatus(data) {
+  latestState = data;
+
+  const player = data.player || {};
+  const current = data.current || null;
+  const items = data.queue || [];
+
+  nowTitle.textContent = current?.title || (player.running ? 'mpv läuft' : 'Noch nichts gestartet');
+
+  const nowMetaParts = [
+    player.running ? (player.paused ? 'Pausiert' : 'Spielt') : '',
+    current?.channel || '',
+    current?.added_by ? `von ${current.added_by}` : '',
+    current?.duration || '',
+  ].filter(Boolean);
+
+  nowMeta.textContent = nowMetaParts.length
+    ? nowMetaParts.join(' · ')
+    : 'Player wartet auf den ersten Song.';
+
+  if (current?.thumbnail) {
+    nowThumb.innerHTML = `<img src="${escapeHtml(current.thumbnail)}" alt="">`;
+  } else {
+    nowThumb.textContent = '▶';
+  }
+
+  if (typeof player.volume === 'number') {
+    volume.value = Math.round(player.volume);
+  }
+
+  updateMainPlayButton(data);
+  renderQueue(items, Boolean(current));
+  rememberAutoplaySource(data);
+  maybeLoadSimilar(data);
+  maybeAutoplay(data);
+}
+
+function updateMainPlayButton(data) {
+  const player = data.player || {};
+  const hasCurrent = Boolean(data.current);
+  const hasQueue = Array.isArray(data.queue) && data.queue.length > 0;
+
+  if (player.running && !player.paused) {
+    pauseBtn.dataset.mode = 'pause';
+    pauseBtn.textContent = '⏸';
+    pauseBtn.title = 'Pause';
+    pauseBtn.setAttribute('aria-label', 'Pause');
+    return;
+  }
+
+  if (hasCurrent || hasQueue || player.running) {
+    pauseBtn.dataset.mode = 'play';
+    pauseBtn.textContent = '▶';
+    pauseBtn.title = 'Abspielen';
+    pauseBtn.setAttribute('aria-label', 'Abspielen');
+    return;
+  }
+
+  pauseBtn.dataset.mode = 'empty';
+  pauseBtn.textContent = '▶';
+  pauseBtn.title = 'Noch kein Song ausgewählt';
+  pauseBtn.setAttribute('aria-label', 'Noch kein Song ausgewählt');
+}
+
+function renderQueue(items, hasCurrent) {
+  queue.innerHTML = '';
+
+  const reallyEmpty = !hasCurrent && (!items || items.length === 0);
+  queueEmpty.hidden = !reallyEmpty;
+
+  if (!items || items.length === 0) {
+    return;
+  }
+
+  for (const item of items) {
+    const li = document.createElement('li');
+    li.className = 'queue-item';
+
+    li.innerHTML = `
+      <div class="queue-row">
+        <div class="queue-thumb">
+          ${thumbnailHtml(item, 'queue-thumb')}
+        </div>
+
+        <div class="queue-main">
+          <strong>${escapeHtml(item.title || 'Unbekannter Titel')}</strong>
+          <span>${escapeHtml(trackMeta(item))}</span>
+        </div>
+      </div>
+    `;
+
+    queue.appendChild(li);
+  }
+}
+
+async function refreshStatus() {
+  try {
+    const data = await api('/api/status');
+    renderStatus(data);
+  } catch (error) {
+    setMessage(error.message);
+  }
+}
+
+async function playNow(item) {
+  setMessage('Starte Wiedergabe …');
+
+  try {
+    const data = await api('/api/play-now', {
+      method: 'POST',
+      body: JSON.stringify(withAddedBy(item)),
+    });
+
+    renderStatus(data);
+    setMessage('Läuft.');
+    loadHistory();
+  } catch (error) {
+    setMessage(error.message);
+  }
+}
+
+async function enqueue(item) {
+  setMessage('Wird zur Queue hinzugefügt …');
+
+  try {
+    const data = await api('/api/queue', {
+      method: 'POST',
+      body: JSON.stringify(withAddedBy(item)),
+    });
+
+    renderStatus(data);
+    setMessage('Hinzugefügt.');
+  } catch (error) {
+    setMessage(error.message);
+  }
+}
+
+async function mainPlayAction() {
+  const data = latestState || {};
+  const player = data.player || {};
+  const hasCurrent = Boolean(data.current);
+  const hasQueue = Array.isArray(data.queue) && data.queue.length > 0;
+
+  try {
+    let nextData;
+
+    if (player.running || hasCurrent) {
+      nextData = await api('/api/control/pause', { method: 'POST' });
+    } else if (hasQueue) {
+      nextData = await api('/api/control/next', { method: 'POST' });
+    } else {
+      setMessage('Erst einen Song suchen oder zur Queue hinzufügen.');
+      return;
+    }
+
+    renderStatus(nextData);
+  } catch (error) {
+    setMessage(error.message);
+  }
+}
+
+async function search(query) {
+  setMessage('Suche läuft …');
+  results.innerHTML = '';
+
+  try {
+    const data = await api(`/api/search?q=${encodeURIComponent(query)}`);
+    renderResults(data.results || []);
+    setMessage('');
+  } catch (error) {
+    setMessage(error.message);
+  }
+}
+
+function hideSuggestions() {
+  suggestions.hidden = true;
+  suggestions.innerHTML = '';
+}
+
+function renderSuggestions(items) {
+  suggestions.innerHTML = '';
+
+  if (!items || items.length === 0) {
+    hideSuggestions();
+    return;
+  }
+
+  const list = document.createElement('div');
+  list.className = 'suggestion-list';
+
+  for (const item of items.slice(0, 6)) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'suggestion-item';
+
+    button.innerHTML = `
+      <span class="suggestion-thumb">
+        ${thumbnailHtml(item, 'suggestion-thumb')}
+      </span>
+
+      <span class="suggestion-text">
+        <strong>${escapeHtml(item.title || 'Unbekannter Titel')}</strong>
+        <small>${escapeHtml([item.channel || '', item.duration || ''].filter(Boolean).join(' · '))}</small>
+      </span>
+    `;
+
+    button.addEventListener('click', () => {
+      input.value = item.title || input.value;
+      hideSuggestions();
+      form.requestSubmit();
+    });
+
+    list.appendChild(button);
+  }
+
+  suggestions.appendChild(list);
+  suggestions.hidden = false;
+}
+
+async function loadSuggestions(query) {
+  if (suggestionAbort) {
+    suggestionAbort.abort();
+  }
+
+  suggestionAbort = new AbortController();
+
+  try {
+    const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`, {
+      signal: suggestionAbort.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    renderSuggestions(data.results || []);
+  } catch (error) {
+    if (error.name !== 'AbortError') {
+      hideSuggestions();
+    }
+  }
+}
+
+async function loadHistory() {
+  try {
+    const response = await fetch('/api/history?limit=20');
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    renderHistory(data.history || []);
+  } catch (error) {
+    historyEmpty.hidden = false;
+    historyEmpty.textContent = 'Hörverlauf konnte nicht geladen werden.';
+  }
+}
+
+function normalizeHistoryTrack(item) {
+  return {
+    title: item.title || 'Unbekannter Titel',
+    url: item.url || '',
+    channel: item.channel || '',
+    duration: item.duration || '',
+    video_id: item.video_id || '',
+    thumbnail: item.thumbnail || '',
+  };
+}
+
+function renderHistory(items) {
+  historyList.innerHTML = '';
+
+  if (!items || items.length === 0) {
+    historyEmpty.hidden = false;
+    return;
+  }
+
+  historyEmpty.hidden = true;
+
+  for (const item of [...items].reverse()) {
+    const track = normalizeHistoryTrack(item);
+
+    const li = document.createElement('li');
+    li.className = 'history-item';
+
+    const meta = [
+      track.channel,
+      item.added_by ? `von ${item.added_by}` : '',
+      track.duration,
+      formatDateTime(item.played_at),
+    ].filter(Boolean).join(' · ');
+
+    li.innerHTML = `
+      <div class="history-thumb">
+        ${thumbnailHtml(track, 'history-thumb')}
+      </div>
+
+      <div class="history-main">
+        <p class="history-title">${escapeHtml(track.title)}</p>
+        <p class="history-meta">${escapeHtml(meta)}</p>
+
+        <div class="history-actions">
+          <button data-action="play" type="button">▶ Jetzt</button>
+          <button data-action="queue" type="button">＋ Queue</button>
+        </div>
+      </div>
+    `;
+
+    li.querySelector('[data-action="play"]').addEventListener('click', () => playNow(track));
+    li.querySelector('[data-action="queue"]').addEventListener('click', () => enqueue(track));
+
+    historyList.appendChild(li);
+  }
+}
+
+async function loadSimilar(force = false) {
+  if (similarLoading) return;
+
+  similarLoading = true;
+
+  try {
+    const response = await fetch('/api/similar');
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    const current = data.current || null;
+    const key = current?.queue_id || current?.video_id || current?.url || '';
+
+    if (!force && key && key === lastSimilarKey && similarList.children.length > 0) {
+      return;
+    }
+
+    lastSimilarKey = key;
+    renderSimilar(data.results || []);
+  } catch (error) {
+    similarEmpty.hidden = false;
+    similarEmpty.textContent = 'Ähnliche Videos konnten nicht geladen werden.';
+  } finally {
+    similarLoading = false;
+  }
+}
+
+function maybeLoadSimilar(data) {
+  const current = data.current || null;
+  const key = current?.queue_id || current?.video_id || current?.url || '';
+
+  if (!key || key === lastSimilarKey) {
+    return;
+  }
+
+  loadSimilar(true);
+}
+
+function renderSimilar(items) {
+  similarList.innerHTML = '';
+
+  if (!items || items.length === 0) {
+    similarEmpty.hidden = false;
+    return;
+  }
+
+  similarEmpty.hidden = true;
+
+  for (const item of items) {
+    const card = document.createElement('article');
+    card.className = 'track-card similar-card';
+
+    card.innerHTML = `
+      <div class="track-thumb">
+        ${thumbnailHtml(item, 'track-thumb')}
+      </div>
+
+      <div class="track-main">
+        <h3>${escapeHtml(item.title || 'Unbekannter Titel')}</h3>
+        <p>${escapeHtml(trackMeta(item))}</p>
+
+        <div class="track-actions">
+          <button data-action="play" type="button">▶ Jetzt</button>
+          <button data-action="queue" type="button">＋ Queue</button>
+        </div>
+      </div>
+    `;
+
+    card.querySelector('[data-action="play"]').addEventListener('click', () => playNow(item));
+    card.querySelector('[data-action="queue"]').addEventListener('click', () => enqueue(item));
+
+    similarList.appendChild(card);
+  }
+}
+
+async function loadJoinInfo() {
+  try {
+    const response = await fetch('/api/join');
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    const url = data.join_url;
+
+    joinUrl.textContent = url;
+    joinUrl.href = url;
+    joinQr.src = `/join/qr.png?t=${Date.now()}`;
+  } catch (error) {
+    joinUrl.textContent = 'QR-Code konnte nicht geladen werden.';
+    joinUrl.removeAttribute('href');
+  }
+}
+
+
+function getTrackKey(track) {
+  if (!track) return '';
+
+  return String(
+    track.queue_id ||
+    track.video_id ||
+    track.url ||
+    track.title ||
+    ''
+  );
+}
+
+function isAutoplayEnabled() {
+  return Boolean(autoplayToggle?.checked);
+}
+
+function initAutoplay() {
+  if (!autoplayToggle) return;
+
+  const saved = localStorage.getItem('julestube.autoplay') === '1';
+  autoplayToggle.checked = saved;
+
+  autoplayToggle.addEventListener('change', () => {
+    localStorage.setItem('julestube.autoplay', autoplayToggle.checked ? '1' : '0');
+
+    if (autoplayToggle.checked) {
+      setMessage('Autoplay ist an.');
+      maybeAutoplay(latestState);
+    } else {
+      setMessage('Autoplay ist aus.');
+    }
+  });
+}
+
+function rememberAutoplaySource(data) {
+  const player = data?.player || {};
+  const current = data?.current || null;
+
+  if (!current) return;
+
+  const key = getTrackKey(current);
+  if (!key) return;
+
+  /*
+    Merken nur, wenn wirklich etwas lief.
+    Dadurch startet Autoplay nicht wild los, nur weil die Seite neu geladen wurde.
+  */
+  if (player.running && !player.paused) {
+    autoplayLastSourceKey = key;
+    autoplayLastSourceTrack = current;
+  }
+}
+
+function queueIsEmpty(data) {
+  return !Array.isArray(data?.queue) || data.queue.length === 0;
+}
+
+function sameTrack(a, b) {
+  if (!a || !b) return false;
+
+  const aKey = getTrackKey(a);
+  const bKey = getTrackKey(b);
+
+  if (aKey && bKey && aKey === bKey) return true;
+
+  const aTitle = String(a.title || '').trim().toLowerCase();
+  const bTitle = String(b.title || '').trim().toLowerCase();
+
+  return Boolean(aTitle && bTitle && aTitle === bTitle);
+}
+
+function pickAutoplayCandidate(items, sourceTrack) {
+  if (!Array.isArray(items)) return null;
+
+  return items.find((item) => {
+    if (!item?.url) return false;
+    return !sameTrack(item, sourceTrack);
+  }) || null;
+}
+
+async function loadAutoplayCandidates(sourceTrack) {
+  /*
+    Erst die Similar-API versuchen.
+    Falls die aus irgendeinem Grund nichts liefert, fallback auf normale Suche.
+  */
+  try {
+    const similarResponse = await fetch('/api/similar');
+
+    if (similarResponse.ok) {
+      const similarData = await similarResponse.json();
+      const candidate = pickAutoplayCandidate(similarData.results || [], sourceTrack);
+
+      if (candidate) {
+        return candidate;
+      }
+    }
+  } catch {
+    // Fallback kommt direkt darunter.
+  }
+
+  const query = [sourceTrack?.title || '', sourceTrack?.channel || '']
+    .filter(Boolean)
+    .join(' ')
+    .trim();
+
+  if (!query) return null;
+
+  const searchResponse = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+
+  if (!searchResponse.ok) {
+    return null;
+  }
+
+  const searchData = await searchResponse.json();
+  return pickAutoplayCandidate(searchData.results || [], sourceTrack);
+}
+
+async function maybeAutoplay(data) {
+  if (!data) return;
+  if (!isAutoplayEnabled()) return;
+  if (autoplayBusy) return;
+
+  const now = Date.now();
+  if (now < autoplayCooldownUntil) return;
+
+  const player = data.player || {};
+
+  /*
+    Nicht starten, solange mpv läuft.
+    Auch nicht starten, wenn bewusst pausiert wurde.
+  */
+  if (player.running || player.paused) return;
+
+  if (!queueIsEmpty(data)) return;
+
+  const sourceTrack = data.current || autoplayLastSourceTrack;
+  const sourceKey = getTrackKey(sourceTrack);
+
+  if (!sourceTrack || !sourceKey) return;
+
+  /*
+    Pro beendetem Song nur einmal Autoplay versuchen.
+    Verhindert Endlosschleifen bei Fehlern.
+  */
+  if (sourceKey === autoplayLastSourceKey && autoplayCooldownUntil > now) {
+    return;
+  }
+
+  autoplayBusy = true;
+  autoplayCooldownUntil = now + 15000;
+
+  try {
+    setMessage('Autoplay sucht ähnlichen Song …');
+
+    const candidate = await loadAutoplayCandidates(sourceTrack);
+
+    if (!candidate) {
+      setMessage('Autoplay: keine ähnlichen Videos gefunden.');
+      return;
+    }
+
+    const nextData = await api('/api/play-now', {
+      method: 'POST',
+      body: JSON.stringify(withAddedBy(candidate)),
+    });
+
+    autoplayLastSourceKey = sourceKey;
+    renderStatus(nextData);
+    setMessage('Autoplay: ähnlicher Song gestartet.');
+    loadHistory();
+  } catch (error) {
+    setMessage(`Autoplay: ${error.message}`);
+  } finally {
+    autoplayBusy = false;
+  }
+}
+
+
+function initUsername() {
+  const savedName = localStorage.getItem('julestube.username') || '';
+
+  usernameInput.value = savedName;
+
+  function showBadge(name) {
+    djNameLabel.textContent = name;
+    userCard.hidden = true;
+    djBadge.hidden = false;
+  }
+
+  function showForm() {
+    djBadge.hidden = true;
+    userCard.hidden = false;
+    usernameInput.focus();
+  }
+
+  function saveName() {
+    const cleanName = usernameInput.value.trim();
+
+    if (!cleanName) {
+      localStorage.removeItem('julestube.username');
+      showForm();
+      return;
+    }
+
+    localStorage.setItem('julestube.username', cleanName);
+    showBadge(cleanName);
+  }
+
+  saveUsernameBtn.addEventListener('click', saveName);
+
+  usernameInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      saveName();
+    }
+  });
+
+  changeUsernameBtn.addEventListener('click', showForm);
+
+  if (savedName.trim()) {
+    showBadge(savedName.trim());
+  } else {
+    showForm();
+  }
+}
+
+form.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  const query = input.value.trim();
+  if (!query) return;
+
+  hideSuggestions();
+  search(query);
+});
+
+input.addEventListener('input', () => {
+  const query = input.value.trim();
+
+  clearTimeout(suggestionTimer);
+
+  if (query.length < 3) {
+    hideSuggestions();
+    return;
+  }
+
+  suggestionTimer = setTimeout(() => {
+    loadSuggestions(query);
+  }, 450);
+});
+
+document.addEventListener('click', (event) => {
+  if (!form.contains(event.target) && !suggestions.contains(event.target)) {
+    hideSuggestions();
+  }
+});
+
+pauseBtn.addEventListener('click', mainPlayAction);
+
+nextBtn.addEventListener('click', async () => {
+  try {
+    const data = await api('/api/control/next', { method: 'POST' });
+    renderStatus(data);
+  } catch (error) {
+    setMessage(error.message);
+  }
+});
+
+volume.addEventListener('change', async () => {
+  try {
+    const data = await api('/api/control/volume', {
+      method: 'POST',
+      body: JSON.stringify({ volume: volume.value }),
+    });
+
+    renderStatus(data);
+  } catch (error) {
+    setMessage(error.message);
+  }
+});
+
+clearQueueBtn.addEventListener('click', async () => {
+  try {
+    const data = await api('/api/queue/clear', { method: 'POST' });
+    renderStatus(data);
+  } catch (error) {
+    setMessage(error.message);
+  }
+});
+
+refreshHistoryBtn.addEventListener('click', loadHistory);
+refreshSimilarBtn.addEventListener('click', () => loadSimilar(true));
+refreshQrBtn.addEventListener('click', loadJoinInfo);
+
+copyJoinUrlBtn.addEventListener('click', async () => {
+  const url = joinUrl.textContent.trim();
+
+  try {
+    await navigator.clipboard.writeText(url);
+    copyJoinUrlBtn.textContent = 'Kopiert';
+    setTimeout(() => {
+      copyJoinUrlBtn.textContent = 'Link kopieren';
+    }, 1400);
+  } catch {
+    setMessage('Kopieren nicht möglich. Link bitte manuell markieren.');
+  }
+});
+
+initUsername();
+initAutoplay();
+loadJoinInfo();
+refreshStatus();
+loadHistory();
+loadSimilar(true);
+
+setInterval(refreshStatus, 4000);
+setInterval(loadHistory, 15000);

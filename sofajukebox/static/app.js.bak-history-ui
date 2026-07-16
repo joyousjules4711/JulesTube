@@ -1,0 +1,163 @@
+const form = document.querySelector('#search-form');
+const input = document.querySelector('#search-input');
+const results = document.querySelector('#results');
+const message = document.querySelector('#message');
+const queue = document.querySelector('#queue');
+const nowTitle = document.querySelector('#now-title');
+const nowMeta = document.querySelector('#now-meta');
+const pauseBtn = document.querySelector('#pause-btn');
+const nextBtn = document.querySelector('#next-btn');
+const volume = document.querySelector('#volume');
+
+async function api(path, options = {}) {
+  const response = await fetch(path, {
+    headers: { 'Content-Type': 'application/json' },
+    ...options,
+  });
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data.error || 'Unbekannter Fehler');
+  }
+  return data;
+}
+
+function setMessage(text) {
+  message.textContent = text || '';
+}
+
+function renderResults(items) {
+  results.innerHTML = '';
+  if (!items.length) {
+    results.innerHTML = '<p class="empty">Nichts gefunden.</p>';
+    return;
+  }
+
+  for (const item of items) {
+    const card = document.createElement('article');
+    card.className = 'result-card';
+    card.innerHTML = `
+      <div class="thumb">${item.thumbnail ? `<img src="${item.thumbnail}" alt="">` : '♪'}</div>
+      <div class="result-main">
+        <h3>${escapeHtml(item.title)}</h3>
+        <p>${escapeHtml(item.channel || '')}</p>
+        <div class="result-actions">
+          <button data-action="play">▶️ Jetzt</button>
+          <button data-action="queue">➕ Queue</button>
+        </div>
+      </div>
+    `;
+
+    card.querySelector('[data-action="play"]').addEventListener('click', () => playNow(item));
+    card.querySelector('[data-action="queue"]').addEventListener('click', () => enqueue(item));
+    results.append(card);
+  }
+}
+
+function renderStatus(data) {
+  const player = data.player;
+  const items = data.queue || [];
+
+  nowTitle.textContent = player.title || (player.running ? 'mpv läuft' : 'Noch nichts gestartet');
+  nowMeta.textContent = player.running
+    ? `${player.paused ? 'Pausiert' : 'Spielt'} · Playlist: ${player.playlist_count ?? 0}`
+    : 'Player wartet auf den ersten Song.';
+
+  if (typeof player.volume === 'number') {
+    volume.value = Math.round(player.volume);
+  }
+
+  queue.innerHTML = '';
+  for (const item of items) {
+    const li = document.createElement('li');
+    li.innerHTML = `<strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.channel || '')}</span>`;
+    queue.append(li);
+  }
+}
+
+async function refreshStatus() {
+  try {
+    const data = await api('/api/status');
+    renderStatus(data);
+  } catch (error) {
+    setMessage(error.message);
+  }
+}
+
+async function enqueue(item) {
+  setMessage('Wird zur Warteschlange hinzugefügt …');
+  const data = await api('/api/queue', {
+    method: 'POST',
+    body: JSON.stringify(item),
+  });
+  renderStatus(data);
+  setMessage('Hinzugefügt.');
+}
+
+async function playNow(item) {
+  setMessage('Starte Wiedergabe …');
+  const data = await api('/api/play-now', {
+    method: 'POST',
+    body: JSON.stringify(item),
+  });
+  renderStatus(data);
+  setMessage('Läuft.');
+}
+
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const q = input.value.trim();
+  if (!q) return;
+
+  setMessage('Suche läuft …');
+  results.innerHTML = '';
+
+  try {
+    const data = await api(`/api/search?q=${encodeURIComponent(q)}`);
+    renderResults(data.results || []);
+    setMessage('');
+  } catch (error) {
+    setMessage(error.message);
+  }
+});
+
+pauseBtn.addEventListener('click', async () => {
+  try {
+    const data = await api('/api/control/pause', { method: 'POST' });
+    renderStatus(data);
+  } catch (error) {
+    setMessage(error.message);
+  }
+});
+
+nextBtn.addEventListener('click', async () => {
+  try {
+    const data = await api('/api/control/next', { method: 'POST' });
+    renderStatus(data);
+  } catch (error) {
+    setMessage(error.message);
+  }
+});
+
+volume.addEventListener('change', async () => {
+  try {
+    const data = await api('/api/control/volume', {
+      method: 'POST',
+      body: JSON.stringify({ volume: volume.value }),
+    });
+    renderStatus(data);
+  } catch (error) {
+    setMessage(error.message);
+  }
+});
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+refreshStatus();
+setInterval(refreshStatus, 4000);
