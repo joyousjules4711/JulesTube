@@ -85,7 +85,7 @@ class PlaybackService:
         speed: float,
         preserve_pitch: bool = True,
     ) -> None:
-        safe_speed = max(0.5, min(float(speed), 2.0))
+        safe_speed = max(0.8, min(float(speed), 1.25))
 
         self.player.set_speed(
             safe_speed,

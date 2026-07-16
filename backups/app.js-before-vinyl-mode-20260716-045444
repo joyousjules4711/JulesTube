@@ -2905,8 +2905,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // JulesTube: DJ-Speed
 (() => {
-  const MIN_SPEED = 0.5;
-  const MAX_SPEED = 2.0;
+  const MIN_SPEED = 0.8;
+  const MAX_SPEED = 1.25;
   const STEP = 0.05;
 
   let currentSpeed = 1.0;
@@ -2949,8 +2949,8 @@ document.addEventListener("DOMContentLoaded", () => {
     section.innerHTML = `
       <div class="dj-speed-heading">
         <div>
-          <p class="mini-label">JulesTube DJ</p>
-          <strong>Vinyl Mode</strong>
+          <p class="mini-label">DJ Control</p>
+          <strong>Tempo</strong>
         </div>
 
         <output id="dj-speed-value">1,00×</output>
@@ -2991,8 +2991,9 @@ document.addEventListener("DOMContentLoaded", () => {
           <input
             id="dj-preserve-pitch"
             type="checkbox"
+            checked
           >
-          <span>Tonhöhe verändern</span>
+          <span>Tonhöhe halten</span>
         </label>
 
         <button
@@ -3030,7 +3031,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (checkbox) {
-      checkbox.checked = !preservePitch;
+      checkbox.checked = preservePitch;
     }
   }
 
@@ -3071,14 +3072,10 @@ document.addEventListener("DOMContentLoaded", () => {
       renderSpeed();
 
       if (status) {
-        const pitchLabel = preservePitch
-          ? "Tonhöhe bleibt gleich"
-          : "Vinyl-Tonhöhe aktiv";
-
         status.textContent =
           currentSpeed === 1
-            ? pitchLabel
-            : `${formatSpeed(currentSpeed)} · ${pitchLabel}`;
+            ? "Originaltempo"
+            : `${formatSpeed(currentSpeed)} aktiv`;
       }
     } catch (error) {
       console.error("DJ-Speed konnte nicht gesetzt werden:", error);
@@ -3139,7 +3136,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.addEventListener("change", (event) => {
     if (event.target.matches("#dj-preserve-pitch")) {
-      preservePitch = !event.target.checked;
+      preservePitch = event.target.checked;
       sendSpeed();
     }
   });
