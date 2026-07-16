@@ -1,36 +1,16 @@
 {
-  "saved_at": "2026-07-16T04:55:45+02:00",
+  "saved_at": "2026-07-16T05:11:06+02:00",
   "current": {
-    "title": "Anti-Depressants Are So Not A Big Deal - feat. Michael Hyatt - \"Crazy Ex-Girlfriend\"",
-    "url": "https://www.youtube.com/watch?v=OG6HZMMDEYA",
-    "channel": "racheldoesstuff",
-    "duration": "3:47",
-    "video_id": "OG6HZMMDEYA",
-    "thumbnail": "https://i.ytimg.com/vi/OG6HZMMDEYA/hqdefault.jpg?sqp=-oaymwEcCOADEI4CSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBEmUAgxT8x9n47w0G2jcrUNUxnlg",
-    "added_by": "Gast",
-    "queue_id": "b6a8dd7da803442686cbe0d85e7aafd5"
+    "title": "SSIO - Nullkommaneun (prod. von Reaf)",
+    "url": "https://www.youtube.com/watch?v=Slei8n08Cqk",
+    "channel": "SSIO",
+    "duration": "6:42",
+    "video_id": "Slei8n08Cqk",
+    "thumbnail": "https://i.ytimg.com/vi/Slei8n08Cqk/hq720.jpg?sqp=-oaymwEcCNAFEJQDSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLCT0QKPh0BlCJxMnnzvRyUOxI1-dw",
+    "added_by": "Jules",
+    "queue_id": "e3457de9695a47e59bf49e3674980712"
   },
-  "next": {
-    "title": "Fit Hot Guys Have Problems, Too (Live) - The Crazy Ex-Girlfriend Concert",
-    "url": "https://www.youtube.com/watch?v=jWG73uJo2-0",
-    "channel": "racheldoesstuff",
-    "duration": "",
-    "video_id": "jWG73uJo2-0",
-    "thumbnail": "https://i.ytimg.com/vi/jWG73uJo2-0/mqdefault.jpg",
-    "added_by": "Gast",
-    "queue_id": "f51e83e8fb9b4ae6875d89a8de176b26"
-  },
-  "queue": [
-    {
-      "title": "Fit Hot Guys Have Problems, Too (Live) - The Crazy Ex-Girlfriend Concert",
-      "url": "https://www.youtube.com/watch?v=jWG73uJo2-0",
-      "channel": "racheldoesstuff",
-      "duration": "",
-      "video_id": "jWG73uJo2-0",
-      "thumbnail": "https://i.ytimg.com/vi/jWG73uJo2-0/mqdefault.jpg",
-      "added_by": "Gast",
-      "queue_id": "f51e83e8fb9b4ae6875d89a8de176b26"
-    }
-  ],
-  "queue_length": 1
+  "next": null,
+  "queue": [],
+  "queue_length": 0
 }

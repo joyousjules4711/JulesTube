@@ -1742,6 +1742,191 @@ window.renderPlaylistPreview = function renderPlaylistPreview(playlist, tracks) 
   }
 })();
 
+/* --- YouTube Account Lists --- */
+
+;(() => {
+  if (window.__julesYoutubeAccountListsInstalled) {
+    return;
+  }
+
+  window.__julesYoutubeAccountListsInstalled = true;
+
+  function ensureYoutubeAccountUi() {
+    const playlistCard = document.querySelector('#playlist-card');
+    const playlistInfo = document.querySelector('#playlist-info');
+
+    if (!playlistCard || !playlistInfo) {
+      return null;
+    }
+
+    let wrapper = document.querySelector('#youtube-account-lists');
+
+    if (wrapper) {
+      return wrapper;
+    }
+
+    wrapper = document.createElement('section');
+    wrapper.id = 'youtube-account-lists';
+    wrapper.className = 'youtube-account-lists';
+
+    wrapper.innerHTML = `
+      <div class="youtube-account-heading">
+        <div>
+          <p class="mini-label">YouTube Login</p>
+          <h3>Meine YouTube-Listen</h3>
+        </div>
+        <button id="youtube-account-refresh-btn" class="ghost-button" type="button">Aktualisieren</button>
+      </div>
+
+      <p id="youtube-account-status" class="empty-note">
+        Lädt deine YouTube-Listen über Firefox-Cookies …
+      </p>
+
+      <div id="youtube-account-feed-list" class="youtube-account-feed-list"></div>
+    `;
+
+    playlistInfo.insertAdjacentElement('afterend', wrapper);
+    return wrapper;
+  }
+
+  function setYoutubeAccountStatus(text) {
+    const status = document.querySelector('#youtube-account-status');
+
+    if (status) {
+      status.textContent = text || '';
+    }
+  }
+
+  function renderYoutubeAccountFeeds(feeds) {
+    const wrapper = ensureYoutubeAccountUi();
+
+    if (!wrapper) {
+      return;
+    }
+
+    const list = wrapper.querySelector('#youtube-account-feed-list');
+    list.innerHTML = '';
+
+    if (!Array.isArray(feeds) || !feeds.length) {
+      setYoutubeAccountStatus('Keine YouTube-Listen gefunden.');
+      return;
+    }
+
+    setYoutubeAccountStatus('Wähle eine YouTube-Liste aus.');
+
+    for (const feed of feeds) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'youtube-account-feed-button';
+      button.dataset.youtubeFeedId = feed.id;
+
+      button.innerHTML = `
+        <strong>${escapeHtml(feed.title || 'YouTube-Liste')}</strong>
+        <span>${escapeHtml(feed.description || '')}</span>
+      `;
+
+      list.appendChild(button);
+    }
+  }
+
+  async function loadYoutubeAccountFeeds() {
+    ensureYoutubeAccountUi();
+    setYoutubeAccountStatus('YouTube-Listen werden geladen …');
+
+    try {
+      const response = await fetch('/api/youtube/account-feeds');
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      renderYoutubeAccountFeeds(data.feeds || []);
+    } catch (error) {
+      setYoutubeAccountStatus(`YouTube-Listen konnten nicht geladen werden: ${error.message}`);
+    }
+  }
+
+  async function loadYoutubeAccountFeedPreview(feedId) {
+    const playlistInfo = document.querySelector('#playlist-info');
+    const playlistActions = document.querySelector('#playlist-actions');
+    const playlistResults = document.querySelector('#playlist-results');
+
+    if (playlistInfo) {
+      playlistInfo.textContent = 'YouTube-Liste wird geladen …';
+    }
+
+    if (playlistActions) {
+      playlistActions.hidden = true;
+    }
+
+    if (playlistResults) {
+      playlistResults.innerHTML = '';
+    }
+
+    try {
+      const response = await fetch('/api/youtube/account-feed/preview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          feed_id: feedId,
+          limit: 20,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`);
+      }
+
+      if (typeof window.renderPlaylistPreview !== 'function') {
+        throw new Error('Playlist-Anzeige fehlt im Frontend.');
+      }
+
+      window.renderPlaylistPreview(data.playlist, data.tracks || []);
+
+      const playlistInput = document.querySelector('#playlist-url-input');
+      if (playlistInput) {
+        playlistInput.value = '';
+      }
+
+      setYoutubeAccountStatus('YouTube-Liste geladen.');
+    } catch (error) {
+      if (playlistInfo) {
+        playlistInfo.textContent = `YouTube-Liste konnte nicht geladen werden: ${error.message}`;
+      }
+
+      setYoutubeAccountStatus('Fehler beim Laden der YouTube-Liste.');
+    }
+  }
+
+  document.addEventListener('click', (event) => {
+    const feedButton = event.target.closest('[data-youtube-feed-id]');
+    const refreshButton = event.target.closest('#youtube-account-refresh-btn');
+
+    if (feedButton) {
+      event.preventDefault();
+      loadYoutubeAccountFeedPreview(feedButton.dataset.youtubeFeedId);
+      return;
+    }
+
+    if (refreshButton) {
+      event.preventDefault();
+      loadYoutubeAccountFeeds();
+    }
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadYoutubeAccountFeeds);
+  } else {
+    loadYoutubeAccountFeeds();
+  }
+})();
+
+
 // JulesTube voice search v1
 document.addEventListener("DOMContentLoaded", () => {
   const voiceButton = document.getElementById("voice-search-btn");
@@ -2980,41 +3165,4 @@ document.addEventListener("DOMContentLoaded", () => {
     createDjSpeedControl();
     loadSpeedState();
   });
-})();
-
-
-// JulesTube: Playlist-Bereich ans Seitenende verschieben
-(() => {
-  function movePlaylistSectionToEnd() {
-    const playlistCard = document.querySelector("#playlist-card");
-
-    if (!playlistCard) {
-      console.warn(
-        "JulesTube: Playlist-Bereich #playlist-card wurde nicht gefunden."
-      );
-      return;
-    }
-
-    const main =
-      playlistCard.closest("main") ||
-      document.querySelector("main");
-
-    if (!main) {
-      console.warn(
-        "JulesTube: Hauptbereich für Playlist-Verschiebung fehlt."
-      );
-      return;
-    }
-
-    main.appendChild(playlistCard);
-  }
-
-  if (document.readyState === "loading") {
-    document.addEventListener(
-      "DOMContentLoaded",
-      movePlaylistSectionToEnd
-    );
-  } else {
-    movePlaylistSectionToEnd();
-  }
 })();
