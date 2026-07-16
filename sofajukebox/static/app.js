@@ -2864,3 +2864,40 @@ document.addEventListener("DOMContentLoaded", () => {
     loadExportSummary();
   });
 })();
+
+
+// Link von "Abend exportieren" zum Sofa-Soundtrack
+document.addEventListener("DOMContentLoaded", () => {
+  const actions = document.querySelector(
+    ".history-export-actions"
+  );
+
+  const dateInput = document.querySelector(
+    "#history-export-date"
+  );
+
+  if (!actions || !dateInput) {
+    return;
+  }
+
+  let link = document.getElementById(
+    "history-open-soundtrack"
+  );
+
+  if (!link) {
+    link = document.createElement("a");
+    link.id = "history-open-soundtrack";
+    link.className =
+      "ghost-button history-export-download";
+    link.textContent = "Sofa-Soundtrack öffnen";
+    actions.prepend(link);
+  }
+
+  function updateLink() {
+    link.href =
+      `/soundtrack?date=${encodeURIComponent(dateInput.value)}`;
+  }
+
+  dateInput.addEventListener("change", updateLink);
+  updateLink();
+});

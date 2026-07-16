@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sofa-Soundtrack · JulesTube</title>
+  <link
+    rel="stylesheet"
+    href="{{ url_for('static', filename='style.css') }}"
+  >
+</head>
+
+<body class="soundtrack-page">
+  <main class="soundtrack-shell">
+    <header class="soundtrack-topbar">
+      <a class="soundtrack-back" href="/">← JulesTube</a>
+
+      <div class="soundtrack-date-controls">
+        <input
+          id="soundtrack-date"
+          type="date"
+          aria-label="Datum auswählen"
+        >
+        <button
+          id="soundtrack-yesterday"
+          class="ghost-button"
+          type="button"
+        >
+          Gestern
+        </button>
+      </div>
+    </header>
+
+    <section class="soundtrack-hero">
+      <p class="mini-label">Dein Sofa-Soundtrack</p>
+      <h1 id="soundtrack-title">Der Abend in Musik</h1>
+      <p id="soundtrack-subtitle">
+        Rückblick wird geladen …
+      </p>
+    </section>
+
+    <section
+      id="soundtrack-summary"
+      class="soundtrack-summary"
+      aria-live="polite"
+    >
+      <article class="soundtrack-stat">
+        <span class="mini-label">Songs</span>
+        <strong id="stat-songs">–</strong>
+      </article>
+
+      <article class="soundtrack-stat">
+        <span class="mini-label">Hörzeit</span>
+        <strong id="stat-duration">–</strong>
+      </article>
+
+      <article class="soundtrack-stat">
+        <span class="mini-label">Top-DJ</span>
+        <strong id="stat-dj">–</strong>
+      </article>
+
+      <article class="soundtrack-stat">
+        <span class="mini-label">Top-Kanal</span>
+        <strong id="stat-channel">–</strong>
+      </article>
+    </section>
+
+    <section class="soundtrack-grid">
+      <article class="soundtrack-panel">
+        <p class="mini-label">Highlights</p>
+        <h2>Erster und letzter Song</h2>
+
+        <div id="soundtrack-bookends"></div>
+      </article>
+
+      <article class="soundtrack-panel">
+        <p class="mini-label">Ranking</p>
+        <h2>Top-DJs</h2>
+
+        <ol id="soundtrack-djs" class="soundtrack-ranking"></ol>
+      </article>
+
+      <article class="soundtrack-panel">
+        <p class="mini-label">Ranking</p>
+        <h2>Top-Kanäle</h2>
+
+        <ol id="soundtrack-channels" class="soundtrack-ranking"></ol>
+      </article>
+    </section>
+
+    <section class="soundtrack-panel soundtrack-songs-panel">
+      <div class="section-heading">
+        <div>
+          <p class="mini-label">Most played</p>
+          <h2>Die Songs des Abends</h2>
+        </div>
+      </div>
+
+      <div id="soundtrack-songs" class="soundtrack-song-list"></div>
+    </section>
+
+    <section class="soundtrack-export">
+      <a id="soundtrack-csv" class="ghost-button" href="#">
+        CSV herunterladen
+      </a>
+
+      <a id="soundtrack-json" class="ghost-button" href="#">
+        JSON herunterladen
+      </a>
+    </section>
+
+    <p id="soundtrack-error" class="message" aria-live="polite"></p>
+  </main>
+
+  <script>
+    (() => {
+      const dateInput = document.getElementById("soundtrack-date");
+      const errorNode = document.getElementById("soundtrack-error");
+
+      function localDateString(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+
+      function yesterdayString() {
+        const date = new Date();
+        date.setDate(date.getDate() - 1);
+        return localDateString(date);
+      }
+
+      function displayDate(value) {
+        const [year, month, day] = value.split("-");
+        return `${day}.${month}.${year}`;
+      }
+
+      function setText(id, value) {
+        const node = document.getElementById(id);
+        if (node) node.textContent = value;
+      }
+
+      function createRanking(items, targetId) {
+        const target = document.getElementById(targetId);
+        target.innerHTML = "";
+
+        if (!items.length) {
+          const empty = document.createElement("li");
+          empty.textContent = "Keine Daten vorhanden";
+          target.appendChild(empty);
+          return;
+        }
+
+        items.forEach((item) => {
+          const row = document.createElement("li");
+
+          const name = document.createElement("span");
+          name.textContent = item.name;
+
+          const count = document.createElement("strong");
+          count.textContent = item.count;
+
+          row.append(name, count);
+          target.appendChild(row);
+        });
+      }
+
+      function createSongCard(song) {
+        const card = document.createElement("a");
+        card.className = "soundtrack-song";
+        card.href = song.url || "#";
+        card.target = "_blank";
+        card.rel = "noreferrer";
+
+        if (song.thumbnail) {
+          const image = document.createElement("img");
+          image.src = song.thumbnail;
+          image.alt = "";
+          image.loading = "lazy";
+          card.appendChild(image);
+        }
+
+        const content = document.createElement("div");
+
+        const title = document.createElement("strong");
+        title.textContent = song.title;
+
+        const meta = document.createElement("span");
+        meta.textContent =
+          `${song.channel || "Unbekannter Kanal"} · ${song.count}×`;
+
+        content.append(title, meta);
+        card.appendChild(content);
+
+        return card;
+      }
+
+      function createBookend(label, song) {
+        const row = document.createElement("div");
+        row.className = "soundtrack-bookend";
+
+        const labelNode = document.createElement("span");
+        labelNode.className = "mini-label";
+        labelNode.textContent = label;
+
+        const title = document.createElement("strong");
+        title.textContent = song?.title || "–";
+
+        const meta = document.createElement("small");
+        meta.textContent = song?.channel || "";
+
+        row.append(labelNode, title, meta);
+        return row;
+      }
+
+      async function loadSoundtrack() {
+        const dateValue = dateInput.value;
+
+        if (!dateValue) return;
+
+        errorNode.textContent = "";
+        setText("soundtrack-subtitle", "Rückblick wird geladen …");
+
+        try {
+          const response = await fetch(
+            `/api/soundtrack?date=${encodeURIComponent(dateValue)}`,
+            { cache: "no-store" }
+          );
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+          }
+
+          setText(
+            "soundtrack-title",
+            `Der Abend vom ${displayDate(dateValue)}`
+          );
+
+          setText(
+            "soundtrack-subtitle",
+            data.song_count
+              ? `${data.unique_song_count} unterschiedliche Songs`
+              : "Für diesen Tag gibt es noch keinen Soundtrack."
+          );
+
+          setText("stat-songs", data.song_count);
+          setText("stat-duration", data.duration_label);
+          setText("stat-dj", data.top_dj?.name || "–");
+          setText("stat-channel", data.top_channel?.name || "–");
+
+          const bookends = document.getElementById(
+            "soundtrack-bookends"
+          );
+          bookends.innerHTML = "";
+          bookends.append(
+            createBookend("Erster Song", data.first_song),
+            createBookend("Letzter Song", data.last_song)
+          );
+
+          createRanking(data.top_djs || [], "soundtrack-djs");
+          createRanking(
+            data.top_channels || [],
+            "soundtrack-channels"
+          );
+
+          const songs = document.getElementById("soundtrack-songs");
+          songs.innerHTML = "";
+
+          (data.top_songs || []).forEach((song) => {
+            songs.appendChild(createSongCard(song));
+          });
+
+          document.getElementById("soundtrack-csv").href =
+            `/api/history/export.csv?date=${encodeURIComponent(
+              dateValue
+            )}`;
+
+          document.getElementById("soundtrack-json").href =
+            `/api/history/export.json?date=${encodeURIComponent(
+              dateValue
+            )}`;
+        } catch (error) {
+          errorNode.textContent =
+            `Soundtrack konnte nicht geladen werden: ${error.message}`;
+        }
+      }
+
+      const queryDate = new URLSearchParams(
+        window.location.search
+      ).get("date");
+
+      dateInput.value = queryDate || yesterdayString();
+
+      dateInput.addEventListener("change", loadSoundtrack);
+
+      document
+        .getElementById("soundtrack-yesterday")
+        .addEventListener("click", () => {
+          dateInput.value = yesterdayString();
+          loadSoundtrack();
+        });
+
+      loadSoundtrack();
+    })();
+  </script>
+</body>
+</html>

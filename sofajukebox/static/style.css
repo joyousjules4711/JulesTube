@@ -1971,3 +1971,225 @@ a:focus-visible {
     width: 100%;
   }
 }
+
+
+/* =========================================================
+   JulesTube – Sofa-Soundtrack
+   ========================================================= */
+
+.soundtrack-page {
+  min-height: 100vh;
+  background: #082417 !important;
+}
+
+.soundtrack-shell {
+  width: min(calc(100% - 32px), 1100px);
+  margin: 0 auto;
+  padding: 24px 0 60px;
+}
+
+.soundtrack-topbar,
+.soundtrack-date-controls,
+.soundtrack-export {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.soundtrack-topbar {
+  justify-content: space-between;
+}
+
+.soundtrack-back {
+  color: var(--julestube-gold, #d6b04c);
+  text-decoration: none;
+}
+
+.soundtrack-date-controls input {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid rgba(214, 176, 76, 0.28);
+  border-radius: 14px;
+  background: #09291a;
+  color: #f4faf6;
+  color-scheme: dark;
+}
+
+.soundtrack-hero {
+  padding: 72px 0 36px;
+}
+
+.soundtrack-hero h1 {
+  max-width: 850px;
+  margin: 8px 0 12px;
+  font-size: clamp(2.5rem, 7vw, 5.6rem);
+  line-height: 0.95;
+}
+
+.soundtrack-hero p:last-child {
+  font-size: 1.1rem;
+  opacity: 0.72;
+}
+
+.soundtrack-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.soundtrack-stat,
+.soundtrack-panel {
+  background: var(--julestube-panel-bg, #0d321f);
+  border: 1px solid rgba(214, 176, 76, 0.18);
+  border-radius: 24px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.2);
+}
+
+.soundtrack-stat {
+  padding: 22px;
+}
+
+.soundtrack-stat strong {
+  display: block;
+  margin-top: 8px;
+  overflow: hidden;
+  font-size: clamp(1.5rem, 3vw, 2.4rem);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.soundtrack-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.soundtrack-panel {
+  padding: 24px;
+}
+
+.soundtrack-panel h2 {
+  margin: 5px 0 20px;
+}
+
+.soundtrack-bookend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(214, 176, 76, 0.14);
+}
+
+.soundtrack-bookend small {
+  opacity: 0.68;
+}
+
+.soundtrack-ranking {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.soundtrack-ranking li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-top: 1px solid rgba(214, 176, 76, 0.14);
+}
+
+.soundtrack-songs-panel {
+  margin-top: 16px;
+}
+
+.soundtrack-song-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.soundtrack-song {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+  padding: 10px;
+  border: 1px solid rgba(214, 176, 76, 0.14);
+  border-radius: 16px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.soundtrack-song:hover {
+  background: rgba(214, 176, 76, 0.08);
+}
+
+.soundtrack-song img {
+  width: 92px;
+  aspect-ratio: 16 / 9;
+  border-radius: 11px;
+  object-fit: cover;
+}
+
+.soundtrack-song div {
+  min-width: 0;
+}
+
+.soundtrack-song strong,
+.soundtrack-song span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.soundtrack-song span {
+  margin-top: 5px;
+  font-size: 0.85rem;
+  opacity: 0.67;
+}
+
+.soundtrack-export {
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+@media (max-width: 800px) {
+  .soundtrack-summary,
+  .soundtrack-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .soundtrack-grid .soundtrack-panel:first-child {
+    grid-column: 1 / -1;
+  }
+
+  .soundtrack-song-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .soundtrack-topbar,
+  .soundtrack-date-controls,
+  .soundtrack-export {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .soundtrack-summary,
+  .soundtrack-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .soundtrack-grid .soundtrack-panel:first-child {
+    grid-column: auto;
+  }
+
+  .soundtrack-export .ghost-button {
+    width: 100%;
+    text-align: center;
+  }
+}
