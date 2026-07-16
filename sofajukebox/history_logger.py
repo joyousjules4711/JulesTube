@@ -80,4 +80,61 @@ class HistoryLogger:
                 continue
 
         return items
-        
+
+    def all_items(self) -> list[dict[str, Any]]:
+        """Return all valid history entries in chronological order."""
+        if not self.history_jsonl_path.exists():
+            return []
+
+        items: list[dict[str, Any]] = []
+
+        with self._lock:
+            lines = self.history_jsonl_path.read_text(
+                encoding="utf-8"
+            ).splitlines()
+
+        for line in lines:
+            try:
+                item = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+
+            if isinstance(item, dict):
+                items.append(item)
+
+        return items
+
+    def for_date(self, date_value: str) -> list[dict[str, Any]]:
+        """Return history entries whose local played_at date matches YYYY-MM-DD."""
+        clean_date = str(date_value or "").strip()
+
+        try:
+            target_date = datetime.strptime(
+                clean_date,
+                "%Y-%m-%d",
+            ).date()
+        except ValueError as error:
+            raise ValueError(
+                "Datum muss im Format YYYY-MM-DD angegeben werden."
+            ) from error
+
+        matches: list[dict[str, Any]] = []
+
+        for item in self.all_items():
+            played_at = str(item.get("played_at") or "").strip()
+
+            if not played_at:
+                continue
+
+            try:
+                played_date = datetime.fromisoformat(
+                    played_at
+                ).date()
+            except ValueError:
+                continue
+
+            if played_date == target_date:
+                matches.append(item)
+
+        return matches
+

@@ -1,10 +1,14 @@
 from __future__ import annotations
 
-from io import BytesIO
+from io import BytesIO, StringIO
+
+import csv
+import json
+from datetime import datetime
 
 import qrcode
 
-from flask import Flask, jsonify, render_template, request, send_file
+from flask import Flask, Response, jsonify, render_template, request, send_file
 
 from .models import Track
 from .network import join_url_from_request
@@ -78,6 +82,106 @@ def create_routes(app: Flask, playback: PlaybackService, youtube: YouTubeSearch)
         limit = max(1, min(limit, 200))
         return jsonify({"history": playback.history.recent(limit)})
 
+
+    @app.get("/api/history/day")
+    def history_for_day():
+        date_value = request.args.get("date", "").strip()
+
+        try:
+            items = playback.history.for_date(date_value)
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
+
+        return jsonify({
+            "date": date_value,
+            "count": len(items),
+            "history": items,
+        })
+
+    @app.get("/api/history/export.json")
+    def history_export_json():
+        date_value = request.args.get("date", "").strip()
+
+        try:
+            items = playback.history.for_date(date_value)
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
+
+        payload = {
+            "exported_at": datetime.now().astimezone().isoformat(
+                timespec="seconds"
+            ),
+            "date": date_value,
+            "count": len(items),
+            "history": items,
+        }
+
+        content = json.dumps(
+            payload,
+            ensure_ascii=False,
+            indent=2,
+        )
+
+        filename = f"julestube-abend-{date_value}.json"
+
+        return Response(
+            content,
+            mimetype="application/json",
+            headers={
+                "Content-Disposition": (
+                    f'attachment; filename="{filename}"'
+                )
+            },
+        )
+
+    @app.get("/api/history/export.csv")
+    def history_export_csv():
+        date_value = request.args.get("date", "").strip()
+
+        try:
+            items = playback.history.for_date(date_value)
+        except ValueError as error:
+            return jsonify({"error": str(error)}), 400
+
+        fieldnames = [
+            "played_at",
+            "title",
+            "channel",
+            "duration",
+            "added_by",
+            "url",
+            "video_id",
+            "thumbnail",
+            "queue_id",
+        ]
+
+        buffer = StringIO()
+        buffer.write("\ufeff")
+
+        writer = csv.DictWriter(
+            buffer,
+            fieldnames=fieldnames,
+            extrasaction="ignore",
+        )
+        writer.writeheader()
+
+        for item in items:
+            writer.writerow({
+                field: item.get(field, "")
+                for field in fieldnames
+            })
+
+        filename = f"julestube-abend-{date_value}.csv"
+
+        return Response(
+            buffer.getvalue(),
+            mimetype="text/csv; charset=utf-8",
+            headers={
+                "Content-Disposition": (
+                    f'attachment; filename="{filename}"'
+                )
+            },
+        )
 
     @app.get("/api/join")
     def join_info():
