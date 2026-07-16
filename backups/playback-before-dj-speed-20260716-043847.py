@@ -80,18 +80,6 @@ class PlaybackService:
     def set_volume(self, volume: int) -> None:
         self.player.set_volume(volume)
 
-    def set_speed(
-        self,
-        speed: float,
-        preserve_pitch: bool = True,
-    ) -> None:
-        safe_speed = max(0.8, min(float(speed), 1.25))
-
-        self.player.set_speed(
-            safe_speed,
-            bool(preserve_pitch),
-        )
-
     def state(self) -> dict[str, object]:
         """Return everything the browser needs in one JSON object."""
         try:

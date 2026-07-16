@@ -87,28 +87,6 @@ class MpvPlayer:
         safe_volume = max(0, min(volume, 100))
         return self.command(["set_property", "volume", safe_volume])
 
-    def set_speed(
-        self,
-        speed: float,
-        preserve_pitch: bool = True,
-    ) -> dict[str, Any]:
-        """Set playback speed and optionally preserve the original pitch."""
-        self.start()
-
-        safe_speed = max(0.5, min(float(speed), 2.0))
-
-        self.command([
-            "set_property",
-            "audio-pitch-correction",
-            bool(preserve_pitch),
-        ])
-
-        return self.command([
-            "set_property",
-            "speed",
-            safe_speed,
-        ])
-
     def status(self) -> dict[str, Any]:
         """Return a compact player status for the web UI."""
         if not self.process or self.process.poll() is not None:
@@ -116,8 +94,6 @@ class MpvPlayer:
                 "running": False,
                 "paused": True,
                 "volume": None,
-                "speed": 1.0,
-                "preserve_pitch": True,
                 "title": None,
                 "playlist_pos": None,
                 "playlist_count": 0,
@@ -127,10 +103,6 @@ class MpvPlayer:
             "running": True,
             "paused": self.get_property("pause"),
             "volume": self.get_property("volume"),
-            "speed": self.get_property("speed"),
-            "preserve_pitch": self.get_property(
-                "audio-pitch-correction"
-            ),
             "title": self.get_property("media-title"),
             "playlist_pos": self.get_property("playlist-pos"),
             "playlist_count": self.get_property("playlist-count"),

@@ -2193,3 +2193,109 @@ a:focus-visible {
     text-align: center;
   }
 }
+
+
+/* =========================================================
+   JulesTube – DJ-Speed
+   ========================================================= */
+
+.dj-speed-control {
+  margin-top: 18px;
+  padding: 18px;
+  border: 1px solid rgba(214, 176, 76, 0.18);
+  border-radius: 18px;
+  background: rgba(8, 41, 26, 0.72);
+}
+
+.dj-speed-heading,
+.dj-speed-footer,
+.dj-speed-main {
+  display: flex;
+  align-items: center;
+}
+
+.dj-speed-heading {
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dj-speed-heading strong {
+  display: block;
+  margin-top: 3px;
+}
+
+#dj-speed-value {
+  color: var(--julestube-gold, #d6b04c);
+  font-size: 1.4rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.dj-speed-main {
+  gap: 12px;
+  margin-top: 16px;
+}
+
+#dj-speed-slider {
+  flex: 1 1 auto;
+  min-width: 0;
+  accent-color: var(--julestube-gold, #d6b04c);
+}
+
+.dj-speed-step {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  padding: 0;
+  border: 1px solid rgba(214, 176, 76, 0.28);
+  border-radius: 50%;
+  background: #09291a;
+  color: var(--julestube-gold, #d6b04c);
+  font: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.dj-speed-step:hover,
+.dj-speed-step:focus-visible {
+  background: rgba(214, 176, 76, 0.12);
+  outline: none;
+}
+
+.dj-speed-footer {
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.dj-pitch-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+}
+
+.dj-pitch-toggle input {
+  accent-color: var(--julestube-gold, #d6b04c);
+}
+
+.dj-speed-status {
+  min-height: 1.2em;
+  margin: 11px 0 0;
+  font-size: 0.82rem;
+  opacity: 0.68;
+}
+
+@media (max-width: 520px) {
+  .dj-speed-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  #dj-speed-reset {
+    width: 100%;
+  }
+}

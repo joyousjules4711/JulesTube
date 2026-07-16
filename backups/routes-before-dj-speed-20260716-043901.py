@@ -404,34 +404,6 @@ def create_routes(app: Flask, playback: PlaybackService, youtube: YouTubeSearch)
             return jsonify({"error": str(exc)}), 500
         return jsonify({"ok": True, **playback.state()})
 
-    @app.post("/api/control/speed")
-    def speed():
-        body = request.get_json(force=True, silent=True) or {}
-
-        try:
-            value = float(body.get("speed", 1.0))
-            preserve_pitch = bool(
-                body.get("preserve_pitch", True)
-            )
-
-            playback.set_speed(
-                value,
-                preserve_pitch=preserve_pitch,
-            )
-
-        except (TypeError, ValueError):
-            return jsonify({
-                "error": "speed muss eine gültige Zahl sein"
-            }), 400
-
-        except MpvError as exc:
-            return jsonify({"error": str(exc)}), 500
-
-        return jsonify({
-            "ok": True,
-            **playback.state(),
-        })
-
     @app.post("/api/control/volume")
     def volume():
         body = request.get_json(force=True, silent=True) or {}

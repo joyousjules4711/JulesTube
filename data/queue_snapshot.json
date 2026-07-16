@@ -1,36 +1,26 @@
 {
-  "saved_at": "2026-07-16T04:28:13+02:00",
+  "saved_at": "2026-07-16T04:51:04+02:00",
   "current": {
-    "title": "Love Kernels - feat. Rachel Bloom - \"Crazy Ex-Girlfriend\"",
-    "url": "https://www.youtube.com/watch?v=bkAjUBtn_TM",
-    "channel": "racheldoesstuff",
-    "duration": "3:26",
-    "video_id": "bkAjUBtn_TM",
-    "thumbnail": "https://i.ytimg.com/vi/bkAjUBtn_TM/hq720.jpg?sqp=-oaymwE6CNAFEJQDSFXyq4qpAywIARUAAIhCGAFwAcABBvABAfgB_gmAAtAFigIMCAAQARhlIE4oSzAPuAL3GA==&rs=AOn4CLD__PbGpuL-rCORkZiwByHGy3CbxA",
-    "added_by": "Gast",
-    "queue_id": "3f93b9da922e4e61890fdb5b47790114"
-  },
-  "next": {
-    "title": "A Diagnosis/Anti-Depressants Medley (Live) - The Crazy Ex-Girlfriend Concert",
-    "url": "https://www.youtube.com/watch?v=K8lJ7F6RDKI",
+    "title": "Let's Generalize About Men (Live) - The Crazy Ex-Girlfriend Concert",
+    "url": "https://www.youtube.com/watch?v=PhhnEpSlR-0",
     "channel": "racheldoesstuff",
     "duration": "",
-    "video_id": "K8lJ7F6RDKI",
-    "thumbnail": "https://i.ytimg.com/vi/K8lJ7F6RDKI/mqdefault.jpg",
+    "video_id": "PhhnEpSlR-0",
+    "thumbnail": "https://i.ytimg.com/vi/PhhnEpSlR-0/mqdefault.jpg",
     "added_by": "Gast",
-    "queue_id": "ff1be6ff642b46fabefe7c3b2cf93aba"
+    "queue_id": "306c7669afb844e7b5fcd58844cd574d"
+  },
+  "next": {
+    "title": "Fit Hot Guys Have Problems, Too (Live) - The Crazy Ex-Girlfriend Concert",
+    "url": "https://www.youtube.com/watch?v=jWG73uJo2-0",
+    "channel": "racheldoesstuff",
+    "duration": "",
+    "video_id": "jWG73uJo2-0",
+    "thumbnail": "https://i.ytimg.com/vi/jWG73uJo2-0/mqdefault.jpg",
+    "added_by": "Gast",
+    "queue_id": "f92d413f071e46fc8f4ba0413e0b0f87"
   },
   "queue": [
-    {
-      "title": "A Diagnosis/Anti-Depressants Medley (Live) - The Crazy Ex-Girlfriend Concert",
-      "url": "https://www.youtube.com/watch?v=K8lJ7F6RDKI",
-      "channel": "racheldoesstuff",
-      "duration": "",
-      "video_id": "K8lJ7F6RDKI",
-      "thumbnail": "https://i.ytimg.com/vi/K8lJ7F6RDKI/mqdefault.jpg",
-      "added_by": "Gast",
-      "queue_id": "ff1be6ff642b46fabefe7c3b2cf93aba"
-    },
     {
       "title": "Fit Hot Guys Have Problems, Too (Live) - The Crazy Ex-Girlfriend Concert",
       "url": "https://www.youtube.com/watch?v=jWG73uJo2-0",
@@ -39,28 +29,8 @@
       "video_id": "jWG73uJo2-0",
       "thumbnail": "https://i.ytimg.com/vi/jWG73uJo2-0/mqdefault.jpg",
       "added_by": "Gast",
-      "queue_id": "bbfc13a56c444caea1a0301eddc9ad2a"
-    },
-    {
-      "title": "Santa Ana Winds - Crazy Ex-Girlfriend",
-      "url": "https://www.youtube.com/watch?v=Z4qvpHZzZGI",
-      "channel": "H D",
-      "duration": "",
-      "video_id": "Z4qvpHZzZGI",
-      "thumbnail": "https://i.ytimg.com/vi/Z4qvpHZzZGI/mqdefault.jpg",
-      "added_by": "Gast",
-      "queue_id": "b77955daad6c43369e3e77b79e90f060"
-    },
-    {
-      "title": "A Diagnosis - feat. Rachel Bloom - \"Crazy Ex-Girlfriend\"",
-      "url": "https://www.youtube.com/watch?v=uic_3vlI5BE",
-      "channel": "racheldoesstuff",
-      "duration": "",
-      "video_id": "uic_3vlI5BE",
-      "thumbnail": "https://i.ytimg.com/vi/uic_3vlI5BE/mqdefault.jpg",
-      "added_by": "Gast",
-      "queue_id": "08edd39f41084b99857cd036036318ab"
+      "queue_id": "f92d413f071e46fc8f4ba0413e0b0f87"
     }
   ],
-  "queue_length": 4
+  "queue_length": 1
 }
